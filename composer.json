@@ -1,0 +1,22 @@
+{
+    "name": "eru123/bpnhs-api",
+    "description": "BPNHS Api",
+    "type": "project",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "eru123",
+            "email": "yeoligoakino@email.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.4||^8.0",
+        "eru123/linker": "^1.33"
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ]
+    }
+}

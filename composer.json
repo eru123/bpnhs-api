@@ -15,8 +15,8 @@
         "eru123/linker": "^1.33"
     },
     "autoload": {
-        "classmap": [
-            "src/"
-        ]
+        "psr-4": {
+            "Bpnhs\\":"src/"
+        }
     }
 }

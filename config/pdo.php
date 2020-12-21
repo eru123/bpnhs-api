@@ -42,7 +42,7 @@ return [
     // format [tb => [col,col,...],tb => [col,col,...], ....]
     // Type: Array
     "schema" => [
-        "users" => ["id","fname","mname","lname","address","phone","email","user","pass"],
+        "users" => ["id","fname","mname","lname","address","phone","email","user","pass","gender","timestamp"],
         "tokens" => ["id","token","user_id","ip","expiration_timestamp"],
         "student" => ["id","user_id"],
         "teacher" => ["id","user_id"],

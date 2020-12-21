@@ -4,18 +4,14 @@ namespace Bpnhs;
 
 class User extends \Linker\PDO\Model {
 
-    public static $ERR_USER_EXISTS = "USER_EUE0";
-    public static $ERR_USER_MIN_CHAR = "USER_EUMC0";
-    public static $ERR_USER_MAX_CHAR = "USER_EUMC1";
-    public static $ERR_USER_FORMAT = "USER_EUF0";
-    public static $ERR_PASS_MIN_CHAR = "USER_UPMC0";
-    public static $ERR_PASS_MAX_CAHR = "USER_UPMC1";
-
-    public static $MAX_USER_CHAR = 36;
-    public static $MIN_USER_CHAR = 3;
-    public static $INVALID_USER_REGEX = "/[^a-zA-Z0-9_]/";
-    public static $MAX_PASS_CHAR = 1024;
-    public static $MIN_PASS_CHAR = 4;
+    public static $max_user_char = 36;
+    public static $min_user_char = 3;
+    public static $invalid_user_regex = "/[^a-zA-Z0-9_]/";
+    public static $max_pass_char = 1024;
+    public static $min_pass_char = 4;
+    public static $max_name_char = 36;
+    public static $min_name_char = 2;
+    public static $invalid_name_regex = "/[^a-zA-Z -.]/";
 
     private \Bpnhs\Tokens $token;
 
@@ -23,17 +19,86 @@ class User extends \Linker\PDO\Model {
         parent::__construct("users",$pdo);
         $this->token = new \Bpnhs\Tokens($pdo);
     }
-    public function register(string $user, string $pass) : mixed {
-        $errors = []; 
+    public function register(array $form) : mixed {
+        $result = [
+            "user" => TRUE,
+            "pass" => TRUE,
+            "fname" => TRUE,
+            "lname" => TRUE,
+            "mname" => TRUE,
+            "gender" => TRUE,
+            "email" => TRUE,
+        ];
+        $errors = 0;
 
-        if($this->exists($user)) $errors[self::$ERR_USER_EXISTS] = "User already exists";
-        if(strlen($user) < self::$MIN_USER_CHAR) $errors[self::$ERR_USER_MIN_CHAR] = "Username must be atleast ".self::$MIN_USER_CHAR." characters";
-        if(strlen($user) > self::$MAX_USER_CHAR) $errors[self::$ERR_USER_MAX_CHAR] = "Username must not exceed ".self::$MAX_USER_CHAR." characters";
-        if(preg_match(self::$INVALID_USER_REGEX, $user)) $errors[self::$ERR_USER_FORMAT] = "Username format is invalid, use ".self::$INVALID_USER_REGEX." format";
-        if(strlen($pass) < self::$MIN_PASS_CHAR) $errors[self::$ERR_PASS_MIN_CHAR] = "Password must be atleast ".self::$MIN_PASS_CHAR." characters";
-        if(strlen($pass) > self::$MAX_PASS_CHAR) $errors[self::$ERR_PASS_MAX_CHAR] = "Password must not exceed ".self::$MAX_PASS_CHAR." characters";
+        $user = $form["user"] ?? "";
+        $pass = $form["pass"] ?? "";
+        $fname = $form["fname"] ?? "";
+        $lname = $form["lname"] ?? "";
+        $mname = $form["mname"] ?? "";
+        $gender = $form["gender"] ?? "other";
+        $email = $form["email"] ?? "";
+        
+        // Validation
 
-        return count($errors) > 0 ? $errors : $this->unique("user",["user"=>$user,"pass"=>password_hash($pass, PASSWORD_DEFAULT)]);
+        // User
+        if(preg_match(self::$invalid_user_regex, $user)) $result["user"] = "Username format is invalid, use ".self::$invalid_user_regex." format";
+        if(strlen($user) < self::$min_user_char) $result["user"] = "Username must be atleast ".self::$min_user_char." characters";
+        if(strlen($user) > self::$max_user_char) $result["user"] = "Username must not exceed ".self::$max_user_char." characters";
+        if($this->exists($user)) $result["user"] = "User already exists";
+        
+        // Pass
+        if(strlen($pass) < self::$min_pass_char) $result["pass"] = "Password must be atleast ".self::$min_pass_char." characters";
+        if(strlen($pass) > self::$max_pass_char) $result["pass"] = "Password must not exceed ".self::$max_pass_char." characters";
+
+        // Firstname
+        if(strlen($fname) < self::$min_name_char) $result["fname"] = "First name must be atleast ".self::$min_name_char." characters";
+        if(strlen($fname) > self::$max_name_char) $result["fname"] = "First name must not exceed ".self::$max_name_char." characters"; 
+        if(preg_match(self::$invalid_name_regex, $fname)) $result["fname"] = "First name format is invalid, use ".self::$invalid_name_regex." format";
+
+        // Middlename
+        if(strlen($mname) < self::$min_name_char) $result["mname"] = "Middle name must be atleast ".self::$min_name_char." characters";
+        if(strlen($mname) > self::$max_name_char) $result["mname"] = "Middle name must not exceed ".self::$max_name_char." characters"; 
+        if(preg_match(self::$invalid_name_regex, $mname)) $result["mname"] = "Middle name format is invalid, use ".self::$invalid_name_regex." format";
+
+        // Lastname
+        if(strlen($lname) < self::$min_name_char) $result["lname"] = "Last name must be atleast ".self::$min_name_char." characters";
+        if(strlen($lname) > self::$max_name_char) $result["lname"] = "Last name must not exceed ".self::$max_name_char." characters"; 
+        if(preg_match(self::$invalid_name_regex, $lname)) $result["lname"] = "Last name format is invalid, use ".self::$invalid_name_regex." format";
+
+        // Email 
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) $result["email"] = "Invalid email format, use user@email.com format"; 
+
+        switch(strtolower($gender)){
+            case 'm':
+                $gender = "male";
+                break;
+            case 'male':
+                $gender = "male";
+                break;
+            case 'f':
+                $gender = "female";
+                break;
+            case 'female':
+                $gender = "female";
+                break;
+            default:
+                $gender = "other";
+                break;
+        }
+
+        foreach($result as $k => $v) if($v !== TRUE) $errors++;
+
+        return $errors > 0 ? $result : $this->unique("user",[
+            "user"=>$user,
+            "pass"=>password_hash($pass, PASSWORD_DEFAULT),
+            "fname"=>$fname,
+            "lname"=>$lname,
+            "mname"=>$mname,
+            "email"=>$email,
+            "gender"=>$gender,
+            "timestamp"=>time()
+        ]);
     }
     public function login(string $user, string $pass) : mixed {
         $data = $this->row(["user"=>$user]);

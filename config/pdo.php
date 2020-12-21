@@ -43,7 +43,7 @@ return [
     // Type: Array
     "schema" => [
         "users" => ["id","fname","mname","lname","address","phone","email","user","pass"],
-        "auth" => ["id","token","user_id","ip","expiration_timestamp"],
+        "tokens" => ["id","token","user_id","ip","expiration_timestamp"],
         "student" => ["id","user_id"],
         "teacher" => ["id","user_id"],
         "staff" => ["id","user_id"],

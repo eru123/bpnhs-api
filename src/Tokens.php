@@ -10,8 +10,11 @@ class Tokens extends \Linker\PDO\Model {
         parent::__construct("tokens",$pdo);
     }
     public function verify_token(string $token) : bool {
-        $ts = $this->rows(["token"=>$token]);
-        return (count($ts) === 1 && isset($ts[0]["ip"]) && $ts[0]["ip"] == self::get_ip()) ? TRUE:FALSE;
+		if(!$this->check($token)) {
+			$ts = $this->rows(["token"=>$token]);
+        	return (count($ts) === 1 && isset($ts[0]["ip"]) && $ts[0]["ip"] == self::get_ip()) ? TRUE:FALSE;
+		} 
+		return FALSE;
     }
     public function create(int $id) : mixed {
         $exp = time() + self::$MAX_TIME;
@@ -24,9 +27,21 @@ class Tokens extends \Linker\PDO\Model {
     }
     public function check(string $token){
         $data = $this->row(["token"=>$token]);
-        return ((int)$data["expiration_timestamp"] > time()) ? $this->logout($token) : FALSE;
-    }
-    public static function get_ip() {
+        return ((int)$data["expiration_timestamp"] < time()) ? $this->logout($token) : FALSE;
+	}
+	public function logout_expired() : array {
+		$active = 0;
+		$expired = 0;
+		$tokens = $this->all();
+		foreach($tokens as $token) { 
+			if($this->check((string)@$token["token"])){
+				$expired++;
+			} else $active++;
+
+		}
+		return ["active"=>$active,"expired"=>$expired];
+	}
+    public static function get_ip() : mixed {
 		// check for shared internet/ISP IP
 		if (!empty($_SERVER['HTTP_CLIENT_IP']) && valsidate_ip($_SERVER['HTTP_CLIENT_IP'])) {
 			return $_SERVER['HTTP_CLIENT_IP'];
@@ -69,7 +84,7 @@ class Tokens extends \Linker\PDO\Model {
 		// return unreliable ip since all else failed
 		return $_SERVER['REMOTE_ADDR'];
 	}
-	public static function validate_ip($ip) {
+	public static function validate_ip($ip) : mixed {
 		if (strtolower($ip) === 'unknown') {
 			return false;
 		}

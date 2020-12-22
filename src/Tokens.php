@@ -27,7 +27,7 @@ class Tokens extends \Linker\PDO\Model {
     }
     public function check(string $token){
         $data = $this->row(["token"=>$token]);
-        return ((int)$data["expiration_timestamp"] < time()) ? $this->logout($token) : FALSE;
+        return ((int)@$data["expiration_timestamp"] < time()) ? $this->logout($token) : FALSE;
 	}
 	public function logout_expired() : array {
 		$active = 0;
@@ -40,6 +40,10 @@ class Tokens extends \Linker\PDO\Model {
 
 		}
 		return ["active"=>$active,"expired"=>$expired];
+	}
+	public function update_token(string $token) : bool {
+        $exp = time() + self::$MAX_TIME;
+		return $this->update(["token"=>$token],["expiration_timestamp"=>$exp]);
 	}
     public static function get_ip() : mixed {
 		// check for shared internet/ISP IP

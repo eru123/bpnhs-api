@@ -23,6 +23,7 @@ if($q!== FALSE) {
         $data["id"] = (int)$data["id"];
         $data["timestamp"] = (int)$data["timestamp"];
         $res["data"] = $data;
+        $tokens->update_token($token);
     }
 } else $res = ["error" => "Invalid request"];
 

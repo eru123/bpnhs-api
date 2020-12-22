@@ -6,7 +6,7 @@
     RewriteEngine On
 
     # Handle Front Controller...
-    RewriteRule ^ index.php [L]
+    RewriteRule ^(.*) index.php [L]
 
     Options -Indexes
     IndexIgnore *

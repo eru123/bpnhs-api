@@ -19,6 +19,7 @@ if(count($user) > 0){
     unset($user["phone"]);
     unset($user["email"]);
     unset($user["address"]);
+    unset($user["level"]);
 } else $user = $res;
 
 Resolve::json((array)$user);

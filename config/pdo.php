@@ -42,7 +42,7 @@ return [
     // format [tb => [col,col,...],tb => [col,col,...], ....]
     // Type: Array
     "schema" => [
-        "users" => ["id","fname","mname","lname","address","phone","email","user","pass","gender","timestamp"],
+        "users" => ["id","fname","mname","lname","address","phone","email","user","pass","gender","timestamp","position","level"],
         "tokens" => ["id","token","user_id","ip","expiration_timestamp"],
         "student" => ["id","user_id"],
         "teacher" => ["id","user_id"],
@@ -61,5 +61,6 @@ return [
     // Be careful using dynamic method, it can alter your selected tables
     // that is specified on your schema
     // Type: String
-    "schema_method" => "dynamic"
+    "schema_method" => "dynamic",
+    // "schema_method" => "force",
 ];

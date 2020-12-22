@@ -26,7 +26,6 @@ class User extends \Linker\PDO\Model {
             "fname" => TRUE,
             "lname" => TRUE,
             "mname" => TRUE,
-            "gender" => TRUE,
             "email" => TRUE,
         ];
         $errors = 0;
@@ -38,6 +37,9 @@ class User extends \Linker\PDO\Model {
         $mname = $form["mname"] ?? "";
         $gender = $form["gender"] ?? "other";
         $email = $form["email"] ?? "";
+        $gender = $form["gender"] ?? "";
+        $position = $form["position"] ?? "";
+        $level = (int) ($form["level"] ?? "");
         
         // Validation
 
@@ -87,6 +89,21 @@ class User extends \Linker\PDO\Model {
                 break;
         }
 
+        switch(strtolower($position)){
+            case 'teacher':
+                $position = "teacher";
+                break;
+            case 'staff':
+                $position = "staff";
+                break;
+            case 'admin':
+                $position = "admin";
+                break;
+            default:
+                $position = "student";
+                break;
+        }
+
         foreach($result as $k => $v) if($v !== TRUE) $errors++;
 
         return $errors > 0 ? $result : $this->unique("user",[
@@ -97,7 +114,9 @@ class User extends \Linker\PDO\Model {
             "mname"=>$mname,
             "email"=>$email,
             "gender"=>$gender,
-            "timestamp"=>time()
+            "timestamp"=>time(),
+            "position"=>$position,
+            "level"=>$level
         ]);
     }
     public function login(string $user, string $pass) : mixed {

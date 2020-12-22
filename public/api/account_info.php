@@ -21,6 +21,7 @@ if($q!== FALSE) {
         $data = $users->row(["id"=>$user_id]);
         unset($data["pass"]);
         $data["id"] = (int)$data["id"];
+        $data["level"] = (int)$data["level"];
         $data["timestamp"] = (int)$data["timestamp"];
         $res["data"] = $data;
         $tokens->update_token($token);

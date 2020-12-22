@@ -52,7 +52,9 @@ return [
         "class_session" => ["id","class_id","user_id"],
         "announcements" => ["id","title","expiration_timestamp","content","date","author_id"],
         "class_forum_posts" => ["id","title","content","date","class_id","user_id"],
-        "class_forum_comments" => ["id","comment","date","forum_post_id","user_id"]
+        "class_forum_comments" => ["id","comment","date","forum_post_id","user_id"],
+        "articles" => ["id","author_id","title","content","date"],
+        "article_comment" => ["id","article_id","author_id","comment","date"]
     ],
 
     // Database Schema method

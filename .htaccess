@@ -8,17 +8,14 @@
     # Handle Front Controller...
     RewriteRule ^(.*) index.php [L]
 
+    # Disable indexing
     Options -Indexes
     IndexIgnore *
     DirectoryIndex index.php
 
     # Forbidden Files
-    <Files .*>
-        Require all denied
-    </Files>
-    
-    <Files composer.*>
-        Require all denied
-    </Files>
+    <FilesMatch "^index\.php$">
+        Allow from all
+    </FilesMatch>
 
 </IfModule>

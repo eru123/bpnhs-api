@@ -121,9 +121,10 @@ class User extends \Linker\PDO\Model {
     }
     public function login(string $user, string $pass) : mixed {
         $data = $this->row(["user"=>$user]);
-        return password_verify($pass, (string)$data["pass"])  ? 
+        if(isset($data["pass"]) && is_string($data["pass"])) return password_verify($pass, (string)$data["pass"])  ? 
             $this->token->create((int) $data["id"]) : 
             FALSE;
+        return FALSE;
     }
     public function exists(string $user) : bool {
         return count($this->rows(["user" => $user])) > 0 ? TRUE : FALSE;

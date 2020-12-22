@@ -8,7 +8,7 @@ use \Bpnhs\Tokens;
 $users = new User($this->pdo);
 $tokens = new Tokens($this->pdo);
 
-$q = $this->query->get('post',"token:!r"); 
+$q = $this->query->get('request',"token:!r"); 
 
 $res = ["error"=>"Invalid token"];
 

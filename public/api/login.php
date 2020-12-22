@@ -5,7 +5,7 @@ use \Bpnhs\Resolve;
 
 $users = new \Bpnhs\User($this->pdo);
 
-$q = $this->query->get('post',"user:!r pass:!r"); 
+$q = $this->query->get('request',"user:!r pass:!r"); 
 
 $res = ["error"=>"Invalid credentials"];
 

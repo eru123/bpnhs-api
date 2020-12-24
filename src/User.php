@@ -38,8 +38,10 @@ class User extends \Linker\PDO\Model {
         $gender = $form["gender"] ?? "other";
         $email = $form["email"] ?? "";
         $gender = $form["gender"] ?? "";
+        $address = $form["address"] ?? "";
+        $phone = $form["phone"] ?? "";
         $position = $form["position"] ?? "";
-        $level = (int) ($form["level"] ?? "");
+        $level = (int)$form["level"] ?? 1;
         
         // Validation
 
@@ -116,7 +118,9 @@ class User extends \Linker\PDO\Model {
             "gender"=>$gender,
             "timestamp"=>time(),
             "position"=>$position,
-            "level"=>$level
+            "level"=>$level,
+            "address"=>$address,
+            "phone"=>$phone
         ]);
     }
     public function login(string $user, string $pass) : mixed {

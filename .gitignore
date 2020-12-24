@@ -2,4 +2,6 @@
 composer.phar
 composer.lock
 *.log
-*.vscode
+/.vscode
+public/mdi/icons.json
+public/mdi/icons.php

@@ -14,5 +14,4 @@ if($q!== FALSE) {
     if($reg !== TRUE) $res["errors"] = $reg; else $res["status"] = TRUE;
 } else $res = ["error" => "Invalid request"];
 
-$res["debug"] = $_REQUEST;
 Resolve::json($res);

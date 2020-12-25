@@ -19,7 +19,7 @@ class User extends \Linker\PDO\Model {
         parent::__construct("users",$pdo);
         $this->token = new \Bpnhs\Tokens($pdo);
     }
-    public function register(array $form) : mixed {
+    public function register(array $form) {
         $result = [
             "user" => TRUE,
             "pass" => TRUE,
@@ -123,7 +123,7 @@ class User extends \Linker\PDO\Model {
             "phone"=>$phone
         ]);
     }
-    public function login(string $user, string $pass) : mixed {
+    public function login(string $user, string $pass) {
         $data = $this->row(["user"=>$user]);
         if(isset($data["pass"]) && is_string($data["pass"])) return password_verify($pass, (string)$data["pass"])  ? 
             $this->token->create((int) $data["id"]) : 

@@ -16,7 +16,7 @@ class Tokens extends \Linker\PDO\Model {
 		} 
 		return FALSE;
     }
-    public function create(int $id) : mixed {
+    public function create(int $id) {
         $exp = time() + self::$MAX_TIME;
         $gen = time()."_".rand()."_".rand()."_".$exp;
         $token = md5($gen);
@@ -45,7 +45,7 @@ class Tokens extends \Linker\PDO\Model {
         $exp = time() + self::$MAX_TIME;
 		return $this->update(["token"=>$token],["expiration_timestamp"=>$exp]);
 	}
-    public static function get_ip() : mixed {
+    public static function get_ip() {
 		// check for shared internet/ISP IP
 		if (!empty($_SERVER['HTTP_CLIENT_IP']) && valsidate_ip($_SERVER['HTTP_CLIENT_IP'])) {
 			return $_SERVER['HTTP_CLIENT_IP'];
@@ -88,7 +88,7 @@ class Tokens extends \Linker\PDO\Model {
 		// return unreliable ip since all else failed
 		return $_SERVER['REMOTE_ADDR'];
 	}
-	public static function validate_ip($ip) : mixed {
+	public static function validate_ip($ip) {
 		if (strtolower($ip) === 'unknown') {
 			return false;
 		}

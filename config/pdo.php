@@ -24,11 +24,11 @@ return [
 
     // PDO username
     // Type: String
-    "user" => "admin", 
+    "user" => "id15760282_bpnhs", 
 
     // PDO password 
     // Type: String
-    "pass" => "admin", 
+    "pass" => "liSKrf!rNtlPx]F4",
 
     // PDO hostname
     // Type: String
@@ -36,7 +36,7 @@ return [
     
     // PDO database name
     // Type: String
-    "db" => "mydb", 
+    "db" => "id15760282_brookespoint_nhs",
 
     // Database schema
     // format [tb => [col,col,...],tb => [col,col,...], ....]
@@ -63,6 +63,7 @@ return [
     // Be careful using dynamic method, it can alter your selected tables
     // that is specified on your schema
     // Type: String
-    "schema_method" => "dynamic",
+    "schema_method" => "normal",
+    // "schema_method" => "dynamic", //experimental
     // "schema_method" => "force",
 ];

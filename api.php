@@ -1603,8 +1603,14 @@ Query::get('request', 'p:logout token:!r', function ($q) {
 });
 
 Query::get('request', 'p:verify_token token:!r', function ($q) {
-    global $token;
-    Resolve::json(["status" => $token->verify_token($q['token'])]);
+    global $token, $user;
+    $res = $token->verify_token($q['token']);
+    $user_id = (int) $token->column('user_id', ["token" => $q['token']]);
+    if (count($user->rows(["id" => $user_id])) < 1) {
+        $res = FALSE;
+        $token->delete(["user_id" => $user_id]);
+    }
+    Resolve::json(["status" => $res]);
 });
 
 Query::get('request', 'p:user id:!r', function ($q) {

@@ -799,7 +799,8 @@ class LPDOModel
     {
         $this->pdo->table($this->tb);
     }
-    function new (array $data) {
+    function new(array $data)
+    {
         $this->table();
         return $this->pdo->createData($data);
     }
@@ -937,7 +938,8 @@ class Query
         }
         return $REQ;
     }
-    private static function rmatch($arr, $method): bool {
+    private static function rmatch($arr, $method): bool
+    {
 
         $REQ = self::_request($method, []);
 
@@ -1537,8 +1539,8 @@ class User extends LPDOModel
         $data = $this->row(["user" => $user]);
         if (isset($data["pass"]) && is_string($data["pass"])) {
             return password_verify($pass, (string) $data["pass"]) ?
-            $this->token->create((int) $data["id"]) :
-            false;
+                $this->token->create((int) $data["id"]) :
+                false;
         }
 
         return false;

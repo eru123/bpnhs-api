@@ -373,7 +373,7 @@ class Keyval
     private function file_init()
     {
         if (!file_exists($this->file)) {
-            self::clear();
+            $this->clear();
         }
     }
     private static function json_encode($arr)
@@ -766,13 +766,7 @@ class LPDO
     }
     public function deleteData(array $find): bool
     {
-        // Find - [key => value]
-
-        $tb = $this->tb;
-
         $prep_find = "";
-        $new_find = [];
-
         foreach ($find as $key => $value) {
             $prep_find .= "$key=?,";
             $new_find[] = $value;
@@ -780,7 +774,7 @@ class LPDO
 
         $prep_find = rtrim($prep_find, ",");
 
-        $query = "DELETE FROM $tb WHERE $prep_find";
+        $query = "DELETE FROM $this->tb WHERE $prep_find";
         $q = ($this->pdo)->prepare($query);
         $q->execute($new_find);
 
@@ -805,8 +799,7 @@ class LPDOModel
     {
         $this->pdo->table($this->tb);
     }
-    function new(array $data)
-    {
+    function new (array $data) {
         $this->table();
         return $this->pdo->createData($data);
     }
@@ -895,7 +888,7 @@ class Query
             }
         }
 
-        $params = self::match($fkey, $method) ? self::translate($fkey, $method) : false;
+        $params = self::rmatch($fkey, $method) ? self::translate($fkey, $method) : false;
 
         if (gettype($callback) == "object" && $params !== false) {
             try {
@@ -944,8 +937,7 @@ class Query
         }
         return $REQ;
     }
-    private static function match($arr, $method): bool
-    {
+    private static function rmatch($arr, $method): bool {
 
         $REQ = self::_request($method, []);
 
@@ -1279,7 +1271,7 @@ class Token extends LPDOModel
     public static function get_ip()
     {
         // check for shared internet/ISP IP
-        if (!empty($_SERVER['HTTP_CLIENT_IP']) && validate_ip($_SERVER['HTTP_CLIENT_IP'])) {
+        if (!empty($_SERVER['HTTP_CLIENT_IP']) && self::validate_ip($_SERVER['HTTP_CLIENT_IP'])) {
             return $_SERVER['HTTP_CLIENT_IP'];
         }
 
@@ -1545,8 +1537,8 @@ class User extends LPDOModel
         $data = $this->row(["user" => $user]);
         if (isset($data["pass"]) && is_string($data["pass"])) {
             return password_verify($pass, (string) $data["pass"]) ?
-                $this->token->create((int) $data["id"]) :
-                false;
+            $this->token->create((int) $data["id"]) :
+            false;
         }
 
         return false;

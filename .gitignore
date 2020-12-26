@@ -1,9 +1,0 @@
-/vendor/
-composer.phar
-composer.lock
-*.log
-/.vscode
-public/mdi/icons.json
-public/mdi/icons.php
-/t
-/dist

@@ -1,0 +1,4 @@
+api.sublime-project
+*.logs
+/vendor/
+composer.lock

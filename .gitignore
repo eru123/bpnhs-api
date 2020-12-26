@@ -6,3 +6,4 @@ composer.lock
 public/mdi/icons.json
 public/mdi/icons.php
 /t
+/dist

@@ -2,8 +2,7 @@
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 
 header("Access-Control-Allow-Origin: *");
 header('Access-Control-Allow-Methods: GET, POST');
@@ -192,19 +191,19 @@ class FileSystem {
     }
 }
 class Crypt {
-    public static function crypt(string $str, string $key) : string {
+    public static function blow(string $str, string $key) : string {
         for ($i = 0; $i < strlen($str); $i++) {
             $str[$i] = $str[$i] ^ $key[$i % strlen($key)];
         }
         return $str;
     }
     public static function encode(string $str, string $key) : string {
-        $hash = self::crypt($str,$key);
+        $hash = self::blow($str,$key);
         return base64_encode($hash);
     }
     public static function decode(string $encoded, string $key) : string {
         $hash = base64_decode($encoded);
-        return self::crypt($hash,$key);
+        return self::blow($hash,$key);
     }
 }
 class Compression {

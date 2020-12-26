@@ -10,59 +10,74 @@ header("Access-Control-Allow-Headers: X-Requested-With");
 
 $config = [
     "pdo" => [
-        "use" => TRUE, 
-        "model" => TRUE, 
+        "use" => true,
+        "model" => true,
         "models" => [
             "users",
             "class",
-            "staff"    
+            "staff",
         ],
-        "user" => "id15760282_bpnhs", 
+        "user" => "id15760282_bpnhs",
         "pass" => "liSKrf!rNtlPx]F4",
-        "host" => "localhost", 
+        "host" => "localhost",
         "db" => "id15760282_brookespoint_nhs",
         "schema" => [
-            "users" => ["id","fname","mname","lname","address","phone","email","user","pass","gender","timestamp","position","level"],
-            "tokens" => ["id","token","user_id","ip","expiration_timestamp"],
-            "student" => ["id","user_id"],
-            "teacher" => ["id","user_id"],
-            "staff" => ["id","user_id"],
-            "admin" => ["id","user_id"],
-            "class" => ["id","class_name","creator_id","SY_start","SY_end"],
-            "class_session" => ["id","class_id","user_id"],
-            "announcements" => ["id","title","expiration_timestamp","content","date","author_id"],
-            "class_forum_posts" => ["id","title","content","date","class_id","user_id"],
-            "class_forum_comments" => ["id","comment","date","forum_post_id","user_id"],
-            "articles" => ["id","author_id","title","content","date"],
-            "article_comment" => ["id","article_id","author_id","comment","date"]
+            "users" => ["id", "fname", "mname", "lname", "address", "phone", "email", "user", "pass", "gender", "timestamp", "position", "level"],
+            "tokens" => ["id", "token", "user_id", "ip", "expiration_timestamp"],
+            "student" => ["id", "user_id"],
+            "teacher" => ["id", "user_id"],
+            "staff" => ["id", "user_id"],
+            "admin" => ["id", "user_id"],
+            "class" => ["id", "class_name", "creator_id", "SY_start", "SY_end"],
+            "class_session" => ["id", "class_id", "user_id"],
+            "announcements" => ["id", "title", "expiration_timestamp", "content", "date", "author_id"],
+            "class_forum_posts" => ["id", "title", "content", "date", "class_id", "user_id"],
+            "class_forum_comments" => ["id", "comment", "date", "forum_post_id", "user_id"],
+            "articles" => ["id", "author_id", "title", "content", "date"],
+            "article_comment" => ["id", "article_id", "author_id", "comment", "date"],
         ],
         "schema_method" => "dynamic",
     ],
 ];
 
-class FileSystem {
-    public static function mkdir($dir,$m=0700) {
+class FileSystem
+{
+    public static function mkdir($dir, $m = 0700)
+    {
         if (is_array($dir)) {
-            foreach ($dir as $k => $v) $dir[$k] = self::mkdir($v);
+            foreach ($dir as $k => $v) {
+                $dir[$k] = self::mkdir($v);
+            }
+
             return $dir;
         } else {
-            if (is_dir($dir))   return FALSE;
-            if (mkdir($dir,$m)) return TRUE;
+            if (is_dir($dir)) {
+                return false;
+            }
+
+            if (mkdir($dir, $m)) {
+                return true;
+            }
         }
     }
-    public static function scandir($dir){
-        $path = rtrim($dir,'/').'/';
-        if(!is_dir($dir)) return array();
+    public static function scandir($dir)
+    {
+        $path = rtrim($dir, '/') . '/';
+        if (!is_dir($dir)) {
+            return array();
+        }
+
         $dir = scandir($dir);
         $res = array();
         $c = 0;
-        for ($i=2; $i < (count($dir)); $i++) {
-            $res[$c] = $path.$dir[$i];
+        for ($i = 2; $i < (count($dir)); $i++) {
+            $res[$c] = $path . $dir[$i];
             $c++;
         }
         return $res;
     }
-    public static function scandirTree(string $dir){
+    public static function scandirTree(string $dir)
+    {
         $base = self::scandir($dir);
         $tmp = $base;
         foreach ($base as $v) {
@@ -75,20 +90,22 @@ class FileSystem {
         }
         return $tmp;
     }
-    public static function tree(string $dir){
+    public static function tree(string $dir)
+    {
         $base = self::scandir($dir);
         $tmp = $base;
         foreach ($base as $k => $v) {
             if (is_dir($v)) {
                 $tmp[$k] = [
                     "folder" => $v,
-                    "childs" => self::tree($v)
+                    "childs" => self::tree($v),
                 ];
             }
         }
         return $tmp;
     }
-    public static function index(string $dir){
+    public static function index(string $dir)
+    {
         $base = self::scandir($dir);
         $tmp = $base;
         foreach ($base as $k => $v) {
@@ -97,157 +114,213 @@ class FileSystem {
                     "type" => "folder",
                     "path" => $v,
                     "name" => basename($v),
-                    "childs" => self::index($v)
+                    "childs" => self::index($v),
                 ];
-            } elseif (is_file($v)){
+            } elseif (is_file($v)) {
                 $tmp[$k] = [
                     "type" => "file",
                     "path" => $v,
-                    "name" => pathinfo(basename($v),PATHINFO_FILENAME ),
-                    "ext" => pathinfo(basename($v),PATHINFO_EXTENSION),
-                    "size" => filesize($v)
+                    "name" => pathinfo(basename($v), PATHINFO_FILENAME),
+                    "ext" => pathinfo(basename($v), PATHINFO_EXTENSION),
+                    "size" => filesize($v),
                 ];
             }
         }
         return $tmp;
     }
-    public static function del($p){
+    public static function del($p)
+    {
         if (is_array($p) && count($p) > 0) {
-            foreach ($p as $key => $value) $p[$key] = self::del($value);
+            foreach ($p as $key => $value) {
+                $p[$key] = self::del($value);
+            }
+
             return $p;
         } else {
             if (is_dir($p)) {
                 $dir = self::scandir($p);
-                foreach ($dir as $key => $value) self::del($value);
-                if (rmdir($p)) return TRUE;
+                foreach ($dir as $key => $value) {
+                    self::del($value);
+                }
+
+                if (rmdir($p)) {
+                    return true;
+                }
             } elseif (file_exists($p)) {
-                if (unlink($p)) return TRUE;
+                if (unlink($p)) {
+                    return true;
+                }
             }
         }
-        return FALSE;
+        return false;
     }
-    public static function write(string $f,string $data='',string $m='a') : bool {
+    public static function write(string $f, string $data = '', string $m = 'a'): bool
+    {
         $m = trim(strtolower($m));
         if ($m == 'a') {
             if (file_exists($f)) {
-                $handle =  fopen($f, "a" ) ;
-                $res = fwrite($handle,$data);
-                fclose ($handle);
+                $handle = fopen($f, "a");
+                $res = fwrite($handle, $data);
+                fclose($handle);
                 return $res;
-            } else return self::write($f,$data,'w');
+            } else {
+                return self::write($f, $data, 'w');
+            }
         } elseif ($m == 'w') {
-            if(!file_exists($f)) touch($f);
-            $handle =  fopen($f, "w" ) ;
-            $res = fwrite($handle,$data);
-            fclose ($handle);
+            if (!file_exists($f)) {
+                touch($f);
+            }
+
+            $handle = fopen($f, "w");
+            $res = fwrite($handle, $data);
+            fclose($handle);
             return $res;
         } else {
-            return self::write($f,$data,'a');
+            return self::write($f, $data, 'a');
         }
     }
-    public static function fwrite(string $f,string $data='') : bool {
-        return self::write($f,$data,'w');
+    public static function fwrite(string $f, string $data = ''): bool
+    {
+        return self::write($f, $data, 'w');
     }
-    public static function fappend(string $f,string $data='') : bool {
-        return self::write($f,$data,'a');
+    public static function fappend(string $f, string $data = ''): bool
+    {
+        return self::write($f, $data, 'a');
     }
-    public static function mime_content_type(string $filename) {
-        $realpath = realpath( $filename );
+    public static function mime_content_type(string $filename)
+    {
+        $realpath = realpath($filename);
 
-        if(!is_file($realpath)) return FALSE;
+        if (!is_file($realpath)) {
+            return false;
+        }
 
-        if ($realpath
-            && function_exists( 'finfo_file' )
-            && function_exists( 'finfo_open' )
+        if (
+            $realpath
+            && function_exists('finfo_file')
+            && function_exists('finfo_open')
             && defined('FILEINFO_MIME_TYPE')
         ) {
-            return finfo_file( finfo_open( FILEINFO_MIME_TYPE ), $realpath );
-        } elseif ( function_exists( 'mime_content_type' ) ) {
-            return mime_content_type( $realpath );
+            return finfo_file(finfo_open(FILEINFO_MIME_TYPE), $realpath);
+        } elseif (function_exists('mime_content_type')) {
+            return mime_content_type($realpath);
         }
-        
-        return FALSE;
-    }
-    public static function copy(string $from,string $to,bool $debug = FALSE){
-        $to = rtrim($to,"/")."/";
-        self::mkdir($to);
-        $top = $to.basename($from);
 
-        if(is_file($from)){
-            if($debug === TRUE) echo "Copying $top... ";
-            $res = copy($from,$top);
-            if($debug === TRUE) echo ($res ? 'OK' : 'FAILED').PHP_EOL;
+        return false;
+    }
+    public static function copy(string $from, string $to, bool $debug = false)
+    {
+        $to = rtrim($to, "/") . "/";
+        self::mkdir($to);
+        $top = $to . basename($from);
+
+        if (is_file($from)) {
+            if ($debug === true) {
+                echo "Copying $top... ";
+            }
+
+            $res = copy($from, $top);
+            if ($debug === true) {
+                echo ($res ? 'OK' : 'FAILED') . PHP_EOL;
+            }
+
             return $res;
-        } elseif(is_dir($from)){
-            if($debug === TRUE) echo "Copying $top... ";
+        } elseif (is_dir($from)) {
+            if ($debug === true) {
+                echo "Copying $top... ";
+            }
+
             $res = self::mkdir($top);
-            if($debug === TRUE) echo ($res ? 'OK' : 'FAILED').PHP_EOL;
-            foreach(self::scandir($from) as $frd) self::copy($frd,$top,$debug);
-            return TRUE;
+            if ($debug === true) {
+                echo ($res ? 'OK' : 'FAILED') . PHP_EOL;
+            }
+
+            foreach (self::scandir($from) as $frd) {
+                self::copy($frd, $top, $debug);
+            }
+
+            return true;
         } else {
-            if($debug === TRUE) echo "Copying $from ... INVALID";
+            if ($debug === true) {
+                echo "Copying $from ... INVALID";
+            }
         }
-        return FALSE;
+        return false;
     }
 }
-class Crypt {
-    public static function blow(string $str, string $key) : string {
+class Crypt
+{
+    public static function blow(string $str, string $key): string
+    {
         for ($i = 0; $i < strlen($str); $i++) {
             $str[$i] = $str[$i] ^ $key[$i % strlen($key)];
         }
         return $str;
     }
-    public static function encode(string $str, string $key) : string {
-        $hash = self::blow($str,$key);
+    public static function encode(string $str, string $key): string
+    {
+        $hash = self::blow($str, $key);
         return base64_encode($hash);
     }
-    public static function decode(string $encoded, string $key) : string {
+    public static function decode(string $encoded, string $key): string
+    {
         $hash = base64_decode($encoded);
-        return self::blow($hash,$key);
+        return self::blow($hash, $key);
     }
 }
-class Compression {
-    public static function lzw_decompress($Ta){
+class Compression
+{
+    public static function lzw_decompress($Ta)
+    {
 
         $ec = 256;
         $Ua = 8;
         $nb = [];
         $Ug = 0;
         $Vg = 0;
-
-        for($s = 0; $s < strlen($Ta); $s++){
-            $Ug=($Ug<<8)+ord($Ta[$s]);
-            $Vg+=8;
-            if($Vg >= $Ua){
+        $tj = "";
+        for ($s = 0; $s < strlen($Ta); $s++) {
+            $Ug = ($Ug << 8) + ord($Ta[$s]);
+            $Vg += 8;
+            if ($Vg >= $Ua) {
                 $Vg -= $Ua;
                 $nb[] = $Ug >> $Vg;
-                $Ug&=(1 << $Vg) -1;
+                $Ug &= (1 << $Vg) - 1;
                 $ec++;
-                if($ec >> $Ua) $Ua++;
+                if ($ec >> $Ua) {
+                    $Ua++;
+                }
             }
         }
 
-        $dc=range("\0","\xFF");
+        $dc = range("\0", "\xFF");
 
-        $H="";
+        $H = "";
 
-        foreach($nb as $s => $mb){
+        foreach ($nb as $s => $mb) {
             $tc = $dc[$mb];
-            if (!isset($tc)) $tc = $tj.$tj[0];
-            $H .= $tc;
-            if($s) $dc[] = $tj.$tc[0];
-            $tj = $tc;
-        } 
+            if (!isset($tc)) {
+                $tc = $tj . $tj[0];
+            }
 
-        return$H;
+            $H .= $tc;
+            if ($s) {
+                $dc[] = $tj . $tc[0];
+            }
+
+            $tj = $tc;
+        }
+
+        return $H;
     }
-    public static function lzw_compress($string) {
-        
+    public static function lzw_compress($string)
+    {
+
         // compression
         $dictionary = array_flip(range("\0", "\xFF"));
         $word = "";
         $codes = array();
-        for ($i=0; $i <= strlen($string); $i++) {
+        for ($i = 0; $i <= strlen($string); $i++) {
             $x = @$string[$i];
             if (strlen($x) && isset($dictionary[$word . $x])) {
                 $word .= $x;
@@ -259,7 +332,7 @@ class Compression {
         }
         // convert codes to binary string
         $dictionary_count = 256;
-        $bits = 8; 
+        $bits = 8;
         $return = "";
         $rest = 0;
         $rest_length = 0;
@@ -279,37 +352,45 @@ class Compression {
         return $return . ($rest_length ? chr($rest << (8 - $rest_length)) : "");
     }
 }
-class Keyval {
+class Keyval
+{
     private $file;
-    public function __construct(?string $file = NULL){
+    public function __construct(?string $file = null)
+    {
         $this->file($file);
     }
-    public function file(?string $file = NULL){
-        if($file){
+    public function file(?string $file = null)
+    {
+        if ($file) {
             $this->file = $file;
             $this->file_init();
         }
     }
-    public function clear(){
-        FileSystem::fwrite($this->file,"<?php\n\$data = [];\n");
+    public function clear()
+    {
+        FileSystem::fwrite($this->file, "<?php\n\$data = [];\n");
     }
-    private function file_init(){
-        if(!file_exists($this->file)){
+    private function file_init()
+    {
+        if (!file_exists($this->file)) {
             self::clear();
         }
     }
-    private static function json_encode($arr){
+    private static function json_encode($arr)
+    {
         $encoded = json_encode($arr);
-        $encoded = str_replace('\\\'','\'',$encoded);
-        $encoded = str_replace('\'','\\\'',$encoded);
+        $encoded = str_replace('\\\'', '\'', $encoded);
+        $encoded = str_replace('\'', '\\\'', $encoded);
         return $encoded;
     }
-    private static function filter_key(string $key){
-        $key = str_replace('\\\'','\'',$key);
-        $key = str_replace('\'','\\\'',$key);
+    private static function filter_key(string $key)
+    {
+        $key = str_replace('\\\'', '\'', $key);
+        $key = str_replace('\'', '\\\'', $key);
         return $key;
     }
-    public function set(string $key,$val){
+    public function set(string $key, $val)
+    {
         $key = self::filter_key($key);
         switch (gettype($val)) {
             case 'string':
@@ -336,40 +417,45 @@ class Keyval {
                 $data = $val;
                 break;
         }
-        FileSystem::fappend($this->file,"\$data['$key'] = $data;\n");
+        FileSystem::fappend($this->file, "\$data['$key'] = $data;\n");
     }
-    public function get(string $key, $default = NULL){
-        $get = function(string $file,string $key,$default){
-            include($file);
+    public function get(string $key, $default = null)
+    {
+        $get = function (string $file, string $key, $default) {
+            include $file;
             return isset($data) && isset($data[$key]) ? $data[$key] : $default;
         };
-        return $get($this->file,$key,$default);
+        return $get($this->file, $key, $default);
     }
-    public function all($default = NULL){
-        $get = function(string $file,$default){
-            include($file);
+    public function all($default = null)
+    {
+        $get = function (string $file, $default) {
+            include $file;
             return isset($data) ? $data : $default;
         };
-        return $get($this->file,$default);
+        return $get($this->file, $default);
     }
-    public function del(string $key){
+    public function del(string $key)
+    {
         $key = self::filter_key($key);
-        FileSystem::fappend($this->file,"unset(\$data['$key']);\n");
+        FileSystem::fappend($this->file, "unset(\$data['$key']);\n");
     }
 }
-class LPDO {
-    protected  $pdo = NULL;
-    protected ?string $tb = NULL;
-    protected ?array $schema = NULL;
+class LPDO
+{
+    protected $pdo = null;
+    protected $tb = null;
+    protected $schema = null;
 
-    public function __construct($config = NULL){
-        if(is_array($config)){
-            $this->connectByConfig($config); 
-        } elseif(is_object($config)) {
+    public function __construct($config = null)
+    {
+        if (is_array($config)) {
+            $this->connectByConfig($config);
+        } elseif (is_object($config)) {
             $this->connectByApp($config);
         }
-        
-        if(isset($config["schema"]) && is_array($config["schema"]) && count($config["schema"])){
+
+        if (isset($config["schema"]) && is_array($config["schema"]) && count($config["schema"])) {
             $schema = isset($config["schema_method"]) ? $config["schema_method"] : $schema = "dynamic";
             switch ($schema) {
                 case 'normal':
@@ -384,28 +470,32 @@ class LPDO {
             }
         }
     }
-    public function connect(string $user,string $pass, string $host, string $db) : PDO {
+    public function connect(string $user, string $pass, string $host, string $db): PDO
+    {
         $dsn = "mysql:host=$host;dbname=$db";
-        $pdo = new PDO($dsn, $user,$pass);
+        $pdo = new PDO($dsn, $user, $pass);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $this->pdo = $pdo;
         return $pdo;
     }
-    protected function connectByApp(object $config){
+    protected function connectByApp(object $config)
+    {
         $user = $config->DB_USER ?? "";
         $pass = $config->DB_PASS ?? "";
         $host = $config->DB_HOST ?? "";
         $db = $config->DB_NAME ?? "";
-        return $this->connect($user,$pass,$host,$db);
+        return $this->connect($user, $pass, $host, $db);
     }
-    protected function connectByConfig(array $config){
+    protected function connectByConfig(array $config)
+    {
         $user = $config["user"] ?? "";
         $pass = $config["pass"] ?? "";
         $host = $config["host"] ?? "";
         $db = $config["db"] ?? "";
-        return $this->connect($user,$pass,$host,$db);
+        return $this->connect($user, $pass, $host, $db);
     }
-    public function columns(string $table) {
+    public function columns(string $table)
+    {
         $columns = [];
         try {
             $rs = $this->pdo->query("SELECT * FROM $table LIMIT 0");
@@ -413,14 +503,15 @@ class LPDO {
                 $col = $rs->getColumnMeta($i);
                 $columns[] = $col['name'];
             }
-        } catch (Exception $e){
-            // 
-        } catch (Error $e){
-            // 
+        } catch (Exception $e) {
+            //
+        } catch (Error $e) {
+            //
         }
         return $columns;
     }
-    public function setupSchema(array $schema = []): bool{
+    public function setupSchema(array $schema = []): bool
+    {
         // SCHEMA - { table: [column,...]}
         $schema = $schema ?? $this->schema;
         $query = "";
@@ -445,9 +536,10 @@ class LPDO {
         }
 
         ($this->pdo)->exec($query);
-        return TRUE;
+        return true;
     }
-    public function forceSetupSchema(array $schema = []): bool {
+    public function forceSetupSchema(array $schema = []): bool
+    {
         // SCHEMA - { table: [column,...]}
 
         $schema = $schema ?? $this->schema;
@@ -474,27 +566,36 @@ class LPDO {
         }
 
         ($this->pdo)->exec($query);
-        return TRUE;
+        return true;
     }
-    public function alteredSchema(array $schema = []) {
+    public function alteredSchema(array $schema = [])
+    {
         $u = [];
         $r = [];
         $query = "";
 
-        foreach($schema as $table => $columns) if(!$this->is_table($table)) $u[$table] = $columns; else $r[$table] = $columns;
+        foreach ($schema as $table => $columns) {
+            if (!$this->is_table($table)) {
+                $u[$table] = $columns;
+            } else {
+                $r[$table] = $columns;
+            }
+        }
 
-        if(count($u) > 0) $this->setupSchema($u);
+        if (count($u) > 0) {
+            $this->setupSchema($u);
+        }
 
-        if(count($r) > 0){
+        if (count($r) > 0) {
             foreach ($r as $t => $c) {
                 // delete - ALTER TABLE `module_column` DROP COLUMN `module_id`
                 // add - ALTER TABLE emails ADD <column name> varchar(60)
                 $cs = $this->columns($t);
                 $primary_key = false; // DEFAULT - Automatically set to true if id column is exists;
-                $add = ""; 
+                $add = "";
                 $drop = "";
                 foreach ($c as $cl) {
-                    if(!in_array($cl,$cs)){
+                    if (!in_array($cl, $cs)) {
                         if ($cl === "id") {
                             $primary_key = true;
                             $add .= "ADD id int(11) AUTO_INCREMENT PRIMARY KEY,";
@@ -504,33 +605,40 @@ class LPDO {
                     }
                 }
 
-                foreach($cs as $c1) {
-                    if(!in_array($c1,$c)) {
+                foreach ($cs as $c1) {
+                    if (!in_array($c1, $c)) {
                         $drop .= "DROP COLUMN $c1,";
                     }
                 }
 
-                $add = rtrim($add, ",").",";
+                $add = rtrim($add, ",") . ",";
                 $drop = rtrim($drop, ",");
-                $data = rtrim("$add$drop",",");
-                if(strlen($data) > 0) $query .= "ALTER TABLE $t $data;";
+                $data = rtrim("$add$drop", ",");
+                if (strlen($data) > 0) {
+                    $query .= "ALTER TABLE $t $data;";
+                }
             }
-            if(strlen($query) > 0) ($this->pdo)->exec($query);
+            if (strlen($query) > 0) {
+                ($this->pdo)->exec($query);
+            }
         }
-        return TRUE;
+        return true;
     }
-    public function is_table(string $table){
-        try{
+    public function is_table(string $table)
+    {
+        try {
             $this->pdo->query("SELECT 1 FROM $table");
-        } catch (PDOException $e){
+        } catch (PDOException $e) {
             return false;
         }
         return true;
     }
-    public function table(string $table): void{
+    public function table(string $table): void
+    {
         $this->tb = $table;
     }
-    public function createData(array $data): bool{
+    public function createData(array $data): bool
+    {
         // DATA - {key: value}
         $tb = $this->tb;
         $keys = "";
@@ -554,14 +662,16 @@ class LPDO {
         }
         return false;
     }
-    public function createUniqueData(string $key, array $data): bool {
+    public function createUniqueData(string $key, array $data): bool
+    {
         if (isset($data[$key]) && count($this->readData([$key => $data[$key]])) > 0) {
-            return FALSE;
+            return false;
         }
 
         return $this->createData($data);
     }
-    public function readData(array $find, array $advance = []): array{
+    public function readData(array $find, array $advance = []): array
+    {
 
         // find - ["name" => "jericho"]
         $tb = $this->tb;
@@ -595,7 +705,8 @@ class LPDO {
 
         return $q->fetchAll() ?? [];
     }
-    public function readAllData(array $advance = []): array{
+    public function readAllData(array $advance = []): array
+    {
         $tb = $this->tb;
 
         $order = $limit = $offset = "";
@@ -620,7 +731,8 @@ class LPDO {
 
         return $q->fetchAll() ?? [];
     }
-    public function updateData(array $find, array $data): bool{
+    public function updateData(array $find, array $data): bool
+    {
         // Find - [key => value]
         // Data = [key => value]
         $tb = $this->tb;
@@ -647,12 +759,13 @@ class LPDO {
         $q->execute($new_data_find);
 
         if ($q->rowCount() > 0) {
-            return TRUE;
+            return true;
         }
 
-        return FALSE;
+        return false;
     }
-    public function deleteData(array $find): bool{
+    public function deleteData(array $find): bool
+    {
         // Find - [key => value]
 
         $tb = $this->tb;
@@ -672,95 +785,109 @@ class LPDO {
         $q->execute($new_find);
 
         if ($q->rowCount() > 0) {
-            return TRUE;
+            return true;
         }
 
-        return FALSE;
+        return false;
     }
 }
-class LPDOModel {
+class LPDOModel
+{
     protected $pdo;
-    protected string $tb;
+    protected $tb;
 
-    public function __construct(string $table, $pdo){
+    public function __construct(string $table, $pdo)
+    {
         $this->tb = $table;
         $this->pdo = $pdo;
     }
-    private function table(){
+    private function table()
+    {
         $this->pdo->table($this->tb);
     }
-    public function new(array $data){
+    function new(array $data)
+    {
         $this->table();
-        return $this->pdo->createData($data);        
+        return $this->pdo->createData($data);
     }
-    public function unique(string $column,array $data){
+    public function unique(string $column, array $data)
+    {
         $this->table();
         return $this->pdo->createUniqueData($column, $data);
     }
-    public function column(string $column,array $find, array $advance = []){
-        $result = $this->row($find,$advance);
-        return isset($result[$column]) ? $result[$column] : NULL;
+    public function column(string $column, array $find, array $advance = [])
+    {
+        $result = $this->row($find, $advance);
+        return isset($result[$column]) ? $result[$column] : null;
     }
-    public function columns($column,array $find, array $advance = []){
+    public function columns($column, array $find, array $advance = [])
+    {
         $columns = [];
         $fresult = [];
 
-        if(is_string($column)){
-            foreach(explode(',',$column) as $col){
-                if(is_string($col) && trim($col) != ""){
+        if (is_string($column)) {
+            foreach (explode(',', $column) as $col) {
+                if (is_string($col) && trim($col) != "") {
                     $columns[] = trim($col);
                 }
             }
-        } elseif(is_array($column)){
-            foreach($column as $col){
-                if(is_string($col) && trim($col) != ""){
+        } elseif (is_array($column)) {
+            foreach ($column as $col) {
+                if (is_string($col) && trim($col) != "") {
                     $columns[] = trim($col);
                 }
             }
         }
 
-        $result = $this->row($find,$advance);
-        
-        foreach($columns as $col){
-            $fresult[$col] = $result[$col] ?? NULL;
+        $result = $this->row($find, $advance);
+
+        foreach ($columns as $col) {
+            $fresult[$col] = $result[$col] ?? null;
         }
 
         return $fresult;
     }
-    public function row(array $find,array $advance = []){
+    public function row(array $find, array $advance = [])
+    {
         $this->table();
         $advance["limit"] = 1;
         $advance["offset"] = 0;
-        $result = $this->pdo->readData($find,$advance);
+        $result = $this->pdo->readData($find, $advance);
         return count($result) > 0 ? $result[0] : [];
     }
-    public function rows(array $find,array $advance = []){
+    public function rows(array $find, array $advance = [])
+    {
         $this->table();
-        $result = $this->pdo->readData($find,$advance);
+        $result = $this->pdo->readData($find, $advance);
         return $result;
     }
-    public function all(array $advance = []){
+    public function all(array $advance = [])
+    {
         $this->table();
         return $this->pdo->readAllData($advance);
     }
-    public function update(array $find, array $data){
+    public function update(array $find, array $data)
+    {
         $this->table();
-        return $this->pdo->updateData($find,$data);
+        return $this->pdo->updateData($find, $data);
     }
-    public function delete(array $find){
+    public function delete(array $find)
+    {
         $this->table();
         return $this->pdo->deleteData($find);
     }
 }
-class Query {
-    
-    public static function get(string $method = "request", string $str, $callback = null) {
+class Query
+{
+
+    public static function get(string $method = "request", string $str, $callback = null)
+    {
         $keys = explode(" ", trim($str));
         $fkey = [];
         foreach ($keys as $key) {
             if (strlen(trim($key)) > 0) {
-                if (count(explode(":",$key)) == 2) {
-                    $lkey = explode(":",$key);
+                if (count(explode(":", $key)) == 2) {
+                    $lkey = explode(":", $key);
                     $fkey[$lkey[0]] = urldecode($lkey[1]);
                 } else {
                     $fkey[$key] = "";
@@ -768,22 +895,25 @@ class Query {
             }
         }
 
-        $params = self::match($fkey, $method) ? self::translate($fkey,$method) : FALSE;
+        $params = self::match($fkey, $method) ? self::translate($fkey, $method) : false;
 
-        if (gettype($callback) == "object" && $params !== FALSE) {
+        if (gettype($callback) == "object" && $params !== false) {
             try {
                 return $callback($params) ?? $params;
-            } catch(Exception $e) {
-                throw new Exeption("Query: Callback is invalid! ");
+            } catch (Exception $e) {
+                throw new Exception("Query: Callback is invalid! ");
             }
 
             return $params;
-        } elseif($params !== FALSE) return $params;
+        } elseif ($params !== false) {
+            return $params;
+        }
 
-        return FALSE;
+        return false;
     }
-    private static function _request(?string $method, array $default = []){
-        $method = trim(strtolower((string)$method));
+    private static function _request($method, array $default = [])
+    {
+        $method = trim(strtolower((string) $method));
 
         $REQ = $default;
 
@@ -814,67 +944,80 @@ class Query {
         }
         return $REQ;
     }
-    private static function match(array $arr,?string $method) : bool {
-        
-        $REQ = self::_request($method,[]);
-        
+    private static function match($arr, $method): bool
+    {
+
+        $REQ = self::_request($method, []);
+
         foreach ($arr as $k => $v) {
             if (strtolower($v) == "--r" || strtolower($v) == "-r" || strtolower($v) == "~r" || strtolower($v) == "!r") {
-                if(isset($REQ[$k])) {
-                    if (gettype($REQ[$k]) == "string" && strlen($REQ[$k]) <= 0) 
-                        return FALSE;
-                } else return FALSE;
+                if (isset($REQ[$k])) {
+                    if (gettype($REQ[$k]) == "string" && strlen($REQ[$k]) <= 0) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
             } elseif (strlen(trim($v)) > 0) {
-                if(isset($REQ[$k])) {
-                    if ($REQ[$k] != $v) 
-                        return FALSE;
-                } else return FALSE;
+                if (isset($REQ[$k])) {
+                    if ($REQ[$k] != $v) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
             }
         }
-        return TRUE;
+        return true;
     }
-    private static function translate(array $arr,string $method) : array {
-        $REQ = self::_request($method,[]);
+    private static function translate(array $arr, string $method): array
+    {
+        $REQ = self::_request($method, []);
         $res = [];
         foreach ($arr as $k => $v) {
             if (!empty($REQ[$k]) && isset($REQ[$k])) {
                 $res[$k] = $REQ[$k];
             } else {
-                $res[$k] = NULL;
+                $res[$k] = null;
             }
         }
         return $res;
     }
 }
-class URI {
-    public static function getPath(){
+class URI
+{
+    public static function getPath()
+    {
         $path = $_SERVER["REQUEST_URI"] ?? "/";
-        $queryPosition = strpos($path,"?");
-        $path = $queryPosition ? substr($path,0,$queryPosition) : $path;
-        return "/".trim($path,"/");
+        $queryPosition = strpos($path, "?");
+        $path = $queryPosition ? substr($path, 0, $queryPosition) : $path;
+        return "/" . trim($path, "/");
     }
-    public static function getQueryPath(){
+    public static function getQueryPath()
+    {
         $path = $_SERVER["REQUEST_URI"] ?? "/";
-        
-        $queryPosition = strpos($path,"?") ? strpos($path,"?") + 1: FALSE;
-        $path = $queryPosition ? substr($path,$queryPosition) : "/";
-        
-        $andPosition = strpos($path,"&");
-        $path = $andPosition ? substr($path,0,$andPosition) : $path;
 
-        return "/".trim($path,"/");
+        $queryPosition = strpos($path, "?") ? strpos($path, "?") + 1 : false;
+        $path = $queryPosition ? substr($path, $queryPosition) : "/";
+
+        $andPosition = strpos($path, "&");
+        $path = $andPosition ? substr($path, 0, $andPosition) : $path;
+
+        return "/" . trim($path, "/");
     }
 }
-class Download {
-    public static function file(string $path,array $config = []){
-        if(file_exists($path)){
+class Download
+{
+    public static function file(string $path, array $config = [])
+    {
+        if (file_exists($path)) {
             $description = $config["description"] ?? "File Download";
             $mime = $config["mime"] ?? "application/octet-stream";
-            $ext = pathinfo(basename($path),PATHINFO_EXTENSION);
-            $filename = isset($config["filename"]) ? rtrim($config["filename"],$ext).".".$ext : basename($path);
-            $encoding = $config["encoding"] ??"binary";
+            $ext = pathinfo(basename($path), PATHINFO_EXTENSION);
+            $filename = isset($config["filename"]) ? rtrim($config["filename"], $ext) . "." . $ext : basename($path);
+            $encoding = $config["encoding"] ?? "binary";
             $expires = $config["expires"] ?? 0;
-            $cache_control = $config["cache"] ??"must-revalidate, post-check=0, pre-check=0";
+            $cache_control = $config["cache"] ?? "must-revalidate, post-check=0, pre-check=0";
             $pragma = $config["pragma"] ?? "public";
             $filesize = filesize($path);
             header("Content-Description: $description");
@@ -889,46 +1032,53 @@ class Download {
             flush();
             readfile($path);
             exit;
-        } else throw new Exception("File does not exists");
+        } else {
+            throw new Exception("File does not exists");
+        }
     }
 }
-class Upload {
-    private string $dir = "uploads";
-    private string $exts = "";
-    private float $max_size = 2.0; // Mega Bytes
-    private array $errors = [];
-    private bool $ready = false;
-    public function __construct(array $config = []){
+class Upload
+{
+    private $dir = "uploads";
+    private $exts = "";
+    private $max_size = 2.0; // Mega Bytes
+    private $errors = [];
+    private $ready = false;
+    public function __construct(array $config = [])
+    {
         $this->dir = $config["dir"] ?? $this->dir;
         $this->exts = $config["exts"] ?? $this->exts;
         $this->max_size = $config["max_size"] ?? $this->max_size;
 
-        $this->dir = rtrim($this->dir,"/")."/";
+        $this->dir = rtrim($this->dir, "/") . "/";
     }
-    private function is_ext_allowed(string $filename) : bool {
+    private function is_ext_allowed(string $filename): bool
+    {
         $this->exts = trim($this->exts);
-        $ext = strtolower(pathinfo($filename,PATHINFO_EXTENSION));
-        foreach(explode(" ",$this->exts) as $val){
-            if($val == $ext){
-                return TRUE;
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        foreach (explode(" ", $this->exts) as $val) {
+            if ($val == $ext) {
+                return true;
             }
         }
 
-        $this->errors[] = "$filename - Invalid file extension (Allowed: ".implode(", ",explode(" ",$this->exts)).")";
-        return FALSE;
+        $this->errors[] = "$filename - Invalid file extension (Allowed: " . implode(", ", explode(" ", $this->exts)) . ")";
+        return false;
     }
-    private function is_size_allowed(int $size,string $filename): bool {
-        if($this->max_size == 0 || $size/1024/1204 <= $this->max_size){
-            return TRUE;
+    private function is_size_allowed(int $size, string $filename): bool
+    {
+        if ($this->max_size == 0 || $size / 1024 / 1204 <= $this->max_size) {
+            return true;
         }
         $this->errors[] = "$filename - Invalid file size (Allowed: $this->max_size MB)";
-        return FALSE;
+        return false;
     }
-    private function is_upload_error(string $key){
-        if(isset($_FILES[$key])){
+    private function is_upload_error(string $key)
+    {
+        if (isset($_FILES[$key])) {
             switch ($_FILES[$key]["error"]) {
                 case UPLOAD_ERR_OK:
-                    return TRUE;
+                    return true;
                     break;
                 case UPLOAD_ERR_INI_SIZE:
                     $this->errors[] = "The uploaded file exceeds the upload_max_filesize directive in php.ini";
@@ -953,11 +1103,12 @@ class Upload {
             }
         }
 
-        return FALSE;
+        return false;
     }
-    private function is_uploads_error(string $key){
-        if(isset($_FILES[$key])){
-            foreach($_FILES[$key]["name"] as $k => $fname){
+    private function is_uploads_error(string $key)
+    {
+        if (isset($_FILES[$key])) {
+            foreach ($_FILES[$key]["name"] as $k => $fname) {
                 $fname = basename($fname);
                 $fname = htmlentities($fname);
                 switch ($_FILES[$key]["error"][$k]) {
@@ -985,26 +1136,26 @@ class Upload {
                         break;
                 }
             }
-            
         }
 
-        return FALSE;
+        return false;
     }
-    public function file(string $key,?string $name = NULL){
+    public function file(string $key, ?string $name = null)
+    {
         $ok = [];
-        if(isset($_FILES[$key]) && !is_array($_FILES[$key]["name"])){
+        if (isset($_FILES[$key]) && !is_array($_FILES[$key]["name"])) {
             $fname = basename($_FILES[$key]["name"]);
-            $ext = strtolower(pathinfo($fname,PATHINFO_EXTENSION));
+            $ext = strtolower(pathinfo($fname, PATHINFO_EXTENSION));
             $size = $_FILES[$key]["size"];
 
             $this->is_ext_allowed($fname);
-            $this->is_size_allowed($size,$fname);
+            $this->is_size_allowed($size, $fname);
             $this->is_upload_error($key);
-            
-            $filename=$name!==NULL?$name.($ext==""?$ext:".$ext"):$fname;
-            $path = $this->dir.$filename;
-            
-            if(file_exists($path)){
+
+            $filename = $name !== null ? $name . ($ext == "" ? $ext : ".$ext") : $fname;
+            $path = $this->dir . $filename;
+
+            if (file_exists($path)) {
                 $this->errors[] = "$filename already exists";
             }
 
@@ -1012,110 +1163,123 @@ class Upload {
             $ok[$filename]["size"] = $size;
             $ok[$filename]["mime"] = $_FILES[$key]["type"];
 
-            $ok[$filename]["path"] = count($this->errors) == 0 && move_uploaded_file($_FILES[$key]["tmp_name"], $path) ? $path : FALSE;
+            $ok[$filename]["path"] = count($this->errors) == 0 && move_uploaded_file($_FILES[$key]["tmp_name"], $path) ? $path : false;
             $ok[$filename]["errors"] = $this->errors;
         } else {
-            return FALSE;
+            return false;
         }
-        
+
         return $ok;
     }
-    public function files(string $key,?object $name = NULL){
+    public function files(string $key, ?object $name = null)
+    {
         $ok = [];
         $err = [];
-        if(isset($_FILES[$key]) && is_array($_FILES[$key]["name"])){
-            foreach($_FILES[$key]["name"] as $k => $v){
+        if (isset($_FILES[$key]) && is_array($_FILES[$key]["name"])) {
+            foreach ($_FILES[$key]["name"] as $k => $v) {
 
                 $fname = basename($_FILES[$key]["name"][$k]);
-                $ext = strtolower(pathinfo($fname,PATHINFO_EXTENSION));
+                $ext = strtolower(pathinfo($fname, PATHINFO_EXTENSION));
                 $size = $_FILES[$key]["size"][$k];
 
                 $this->is_ext_allowed($fname);
-                $this->is_size_allowed($size,$fname);
+                $this->is_size_allowed($size, $fname);
                 $this->is_uploads_error($key);
 
                 try {
-                    $filename=gettype($name) == "object"?$name().($ext==""?$ext:".$ext"):$fname;
-                } catch(Exception $e){
+                    $filename = gettype($name) == "object" ? $name() . ($ext == "" ? $ext : ".$ext") : $fname;
+                } catch (Exception $e) {
                     $filename = $fname;
                 }
 
-                $path = $this->dir.$filename;
-                
-                if(file_exists($path)){
+                $path = $this->dir . $filename;
+
+                if (file_exists($path)) {
                     $this->errors[] = "$filename already exists";
                 }
-                
+
                 $ok[$fname]["name"] = $_FILES[$key]["name"][$k];
                 $ok[$fname]["size"] = $size;
                 $ok[$fname]["mime"] = $_FILES[$key]["type"][$k];
 
-                $ok[$fname]["path"] = count($this->errors) == 0 && move_uploaded_file($_FILES[$key]["tmp_name"][$k], $path) ? $path : FALSE;
+                $ok[$fname]["path"] = count($this->errors) == 0 && move_uploaded_file($_FILES[$key]["tmp_name"][$k], $path) ? $path : false;
                 $ok[$fname]["errors"] = $this->errors;
 
                 $err = array_merge($err, $this->errors);
                 $this->errors = [];
             }
         } else {
-            return FALSE;
+            return false;
         }
-        
+
         return $ok;
     }
 }
-class Resolve {
-    public static function json($a) : void {
+class Resolve
+{
+    public static function json($a): void
+    {
         header('Content-Type: application/json');
-        echo json_encode((array)$a);
+        echo json_encode((array) $a);
         exit;
     }
 }
-class Token extends LPDOModel {
+class Token extends LPDOModel
+{
 
     public static $MAX_TIME = 604800; // 7 days
 
-    public function __construct($pdo){
-        parent::__construct("tokens",$pdo);
+    public function __construct($pdo)
+    {
+        parent::__construct("tokens", $pdo);
     }
-    public function verify_token(string $token) : bool {
-        if(!$this->check($token)) {
-            $ts = $this->rows(["token"=>$token]);
-            return (count($ts) === 1 && isset($ts[0]["ip"]) && $ts[0]["ip"] == self::get_ip()) ? TRUE:FALSE;
-        } 
-        return FALSE;
+    public function verify_token(string $token): bool
+    {
+        if (!$this->check($token)) {
+            $ts = $this->rows(["token" => $token]);
+            return (count($ts) === 1 && isset($ts[0]["ip"]) && $ts[0]["ip"] == self::get_ip()) ? true : false;
+        }
+        return false;
     }
-    public function create(int $id) {
+    public function create(int $id)
+    {
         $exp = time() + self::$MAX_TIME;
-        $gen = time()."_".rand()."_".rand()."_".$exp;
+        $gen = time() . "_" . rand() . "_" . rand() . "_" . $exp;
         $token = md5($gen);
-        return $this->unique('token',["token"=>$token,"expiration_timestamp"=>$exp,"user_id"=>(int)$id,"ip"=>self::get_ip()]) ? $token : FALSE;
+        return $this->unique('token', ["token" => $token, "expiration_timestamp" => $exp, "user_id" => (int) $id, "ip" => self::get_ip()]) ? $token : false;
     }
-    public function logout(string $token){
-        return (bool)$this->delete(["token"=>$token]);
+    public function logout(string $token)
+    {
+        return (bool) $this->delete(["token" => $token]);
     }
-    public function check(string $token){
-        $data = $this->row(["token"=>$token]);
-        return ((int)@$data["expiration_timestamp"] < time()) ? $this->logout($token) : FALSE;
+    public function check(string $token)
+    {
+        $data = $this->row(["token" => $token]);
+        return ((int) @$data["expiration_timestamp"] < time()) ? $this->logout($token) : false;
     }
-    public function logout_expired() : array {
+    public function logout_expired(): array
+    {
         $active = 0;
         $expired = 0;
         $tokens = $this->all();
-        foreach($tokens as $token) { 
-            if($this->check((string)@$token["token"])){
+        foreach ($tokens as $token) {
+            if ($this->check((string) @$token["token"])) {
                 $expired++;
-            } else $active++;
-
+            } else {
+                $active++;
+            }
         }
-        return ["active"=>$active,"expired"=>$expired];
+        return ["active" => $active, "expired" => $expired];
     }
-    public function update_token(string $token) : bool {
+    public function update_token(string $token): bool
+    {
         $exp = time() + self::$MAX_TIME;
-        return $this->update(["token"=>$token],["expiration_timestamp"=>$exp]);
+        return $this->update(["token" => $token], ["expiration_timestamp" => $exp]);
     }
-    public static function get_ip() {
+    public static function get_ip()
+    {
         // check for shared internet/ISP IP
-        if (!empty($_SERVER['HTTP_CLIENT_IP']) && valsidate_ip($_SERVER['HTTP_CLIENT_IP'])) {
+        if (!empty($_SERVER['HTTP_CLIENT_IP']) && validate_ip($_SERVER['HTTP_CLIENT_IP'])) {
             return $_SERVER['HTTP_CLIENT_IP'];
         }
 
@@ -1133,7 +1297,6 @@ class Token extends LPDOModel {
                 if (self::validate_ip($_SERVER['HTTP_X_FORWARDED_FOR'])) {
                     return $_SERVER['HTTP_X_FORWARDED_FOR'];
                 }
-
             }
         }
 
@@ -1156,7 +1319,8 @@ class Token extends LPDOModel {
         // return unreliable ip since all else failed
         return $_SERVER['REMOTE_ADDR'];
     }
-    public static function validate_ip($ip) {
+    public static function validate_ip($ip)
+    {
         if (strtolower($ip) === 'unknown') {
             return false;
         }
@@ -1202,12 +1366,12 @@ class Token extends LPDOModel {
             if ($ip >= 4294967040) {
                 return false;
             }
-
         }
         return true;
     }
 }
-class User extends LPDOModel {
+class User extends LPDOModel
+{
 
     public static $max_user_char = 36;
     public static $min_user_char = 3;
@@ -1220,18 +1384,20 @@ class User extends LPDOModel {
 
     private $token;
 
-    public function __construct($pdo){
-        parent::__construct("users",$pdo);
+    public function __construct($pdo)
+    {
+        parent::__construct("users", $pdo);
         $this->token = new Token($pdo);
     }
-    public function register(array $form) {
+    public function register(array $form)
+    {
         $result = [
-            "user" => TRUE,
-            "pass" => TRUE,
-            "fname" => TRUE,
-            "lname" => TRUE,
-            "mname" => TRUE,
-            "email" => TRUE,
+            "user" => true,
+            "pass" => true,
+            "fname" => true,
+            "lname" => true,
+            "mname" => true,
+            "email" => true,
         ];
         $errors = 0;
 
@@ -1246,39 +1412,81 @@ class User extends LPDOModel {
         $address = $form["address"] ?? "";
         $phone = $form["phone"] ?? "";
         $position = $form["position"] ?? "";
-        $level = (int)$form["level"] ?? 1;
-        
+        $level = (int) $form["level"] ?? 1;
+
         // Validation
 
         // User
-        if(preg_match(self::$invalid_user_regex, $user)) $result["user"] = "Username format is invalid, use ".self::$invalid_user_regex." format";
-        if(strlen($user) < self::$min_user_char) $result["user"] = "Username must be atleast ".self::$min_user_char." characters";
-        if(strlen($user) > self::$max_user_char) $result["user"] = "Username must not exceed ".self::$max_user_char." characters";
-        if($this->exists($user)) $result["user"] = "User already exists";
-        
+        if (preg_match(self::$invalid_user_regex, $user)) {
+            $result["user"] = "Username format is invalid, use " . self::$invalid_user_regex . " format";
+        }
+
+        if (strlen($user) < self::$min_user_char) {
+            $result["user"] = "Username must be atleast " . self::$min_user_char . " characters";
+        }
+
+        if (strlen($user) > self::$max_user_char) {
+            $result["user"] = "Username must not exceed " . self::$max_user_char . " characters";
+        }
+
+        if ($this->exists($user)) {
+            $result["user"] = "User already exists";
+        }
+
         // Pass
-        if(strlen($pass) < self::$min_pass_char) $result["pass"] = "Password must be atleast ".self::$min_pass_char." characters";
-        if(strlen($pass) > self::$max_pass_char) $result["pass"] = "Password must not exceed ".self::$max_pass_char." characters";
+        if (strlen($pass) < self::$min_pass_char) {
+            $result["pass"] = "Password must be atleast " . self::$min_pass_char . " characters";
+        }
+
+        if (strlen($pass) > self::$max_pass_char) {
+            $result["pass"] = "Password must not exceed " . self::$max_pass_char . " characters";
+        }
 
         // Firstname
-        if(strlen($fname) < self::$min_name_char) $result["fname"] = "First name must be atleast ".self::$min_name_char." characters";
-        if(strlen($fname) > self::$max_name_char) $result["fname"] = "First name must not exceed ".self::$max_name_char." characters"; 
-        if(preg_match(self::$invalid_name_regex, $fname)) $result["fname"] = "First name format is invalid, use ".self::$invalid_name_regex." format";
+        if (strlen($fname) < self::$min_name_char) {
+            $result["fname"] = "First name must be atleast " . self::$min_name_char . " characters";
+        }
+
+        if (strlen($fname) > self::$max_name_char) {
+            $result["fname"] = "First name must not exceed " . self::$max_name_char . " characters";
+        }
+
+        if (preg_match(self::$invalid_name_regex, $fname)) {
+            $result["fname"] = "First name format is invalid, use " . self::$invalid_name_regex . " format";
+        }
 
         // Middlename
-        if(strlen($mname) < self::$min_name_char) $result["mname"] = "Middle name must be atleast ".self::$min_name_char." characters";
-        if(strlen($mname) > self::$max_name_char) $result["mname"] = "Middle name must not exceed ".self::$max_name_char." characters"; 
-        if(preg_match(self::$invalid_name_regex, $mname)) $result["mname"] = "Middle name format is invalid, use ".self::$invalid_name_regex." format";
+        if (strlen($mname) < self::$min_name_char) {
+            $result["mname"] = "Middle name must be atleast " . self::$min_name_char . " characters";
+        }
+
+        if (strlen($mname) > self::$max_name_char) {
+            $result["mname"] = "Middle name must not exceed " . self::$max_name_char . " characters";
+        }
+
+        if (preg_match(self::$invalid_name_regex, $mname)) {
+            $result["mname"] = "Middle name format is invalid, use " . self::$invalid_name_regex . " format";
+        }
 
         // Lastname
-        if(strlen($lname) < self::$min_name_char) $result["lname"] = "Last name must be atleast ".self::$min_name_char." characters";
-        if(strlen($lname) > self::$max_name_char) $result["lname"] = "Last name must not exceed ".self::$max_name_char." characters"; 
-        if(preg_match(self::$invalid_name_regex, $lname)) $result["lname"] = "Last name format is invalid, use ".self::$invalid_name_regex." format";
+        if (strlen($lname) < self::$min_name_char) {
+            $result["lname"] = "Last name must be atleast " . self::$min_name_char . " characters";
+        }
 
-        // Email 
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) $result["email"] = "Invalid email format, use user@email.com format"; 
+        if (strlen($lname) > self::$max_name_char) {
+            $result["lname"] = "Last name must not exceed " . self::$max_name_char . " characters";
+        }
 
-        switch(strtolower($gender)){
+        if (preg_match(self::$invalid_name_regex, $lname)) {
+            $result["lname"] = "Last name format is invalid, use " . self::$invalid_name_regex . " format";
+        }
+
+        // Email
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $result["email"] = "Invalid email format, use user@email.com format";
+        }
+
+        switch (strtolower($gender)) {
             case 'm':
                 $gender = "male";
                 break;
@@ -1296,7 +1504,7 @@ class User extends LPDOModel {
                 break;
         }
 
-        switch(strtolower($position)){
+        switch (strtolower($position)) {
             case 'teacher':
                 $position = "teacher";
                 break;
@@ -1311,32 +1519,41 @@ class User extends LPDOModel {
                 break;
         }
 
-        foreach($result as $k => $v) if($v !== TRUE) $errors++;
+        foreach ($result as $k => $v) {
+            if ($v !== true) {
+                $errors++;
+            }
+        }
 
-        return $errors > 0 ? $result : $this->unique("user",[
-            "user"=>$user,
-            "pass"=>password_hash($pass, PASSWORD_DEFAULT),
-            "fname"=>ucwords(strtolower($fname)),
-            "lname"=>ucwords(strtolower($lname)),
-            "mname"=>ucwords(strtolower($mname)),
-            "email"=>$email,
-            "gender"=>$gender,
-            "timestamp"=>time(),
-            "position"=>$position,
-            "level"=>$level,
-            "address"=>$address,
-            "phone"=>$phone
+        return $errors > 0 ? $result : $this->unique("user", [
+            "user" => $user,
+            "pass" => password_hash($pass, PASSWORD_DEFAULT),
+            "fname" => ucwords(strtolower($fname)),
+            "lname" => ucwords(strtolower($lname)),
+            "mname" => ucwords(strtolower($mname)),
+            "email" => $email,
+            "gender" => $gender,
+            "timestamp" => time(),
+            "position" => $position,
+            "level" => $level,
+            "address" => $address,
+            "phone" => $phone,
         ]);
     }
-    public function login(string $user, string $pass) {
-        $data = $this->row(["user"=>$user]);
-        if(isset($data["pass"]) && is_string($data["pass"])) return password_verify($pass, (string)$data["pass"])  ? 
-            $this->token->create((int) $data["id"]) : 
-            FALSE;
-        return FALSE;
+    public function login(string $user, string $pass)
+    {
+        $data = $this->row(["user" => $user]);
+        if (isset($data["pass"]) && is_string($data["pass"])) {
+            return password_verify($pass, (string) $data["pass"]) ?
+                $this->token->create((int) $data["id"]) :
+                false;
+        }
+
+        return false;
     }
-    public function exists(string $user) : bool {
-        return count($this->rows(["user" => $user])) > 0 ? TRUE : FALSE;
+    public function exists(string $user): bool
+    {
+        return count($this->rows(["user" => $user])) > 0 ? true : false;
     }
 }
 
@@ -1344,72 +1561,70 @@ $pdo = new LPDO($config["pdo"]);
 $user = new User($pdo);
 $token = new Token($pdo);
 
-
 // CRON JOBS
 
-Query::get('request','p:cron r:logout_expired',function($q){
+Query::get('request', 'p:cron r:logout_expired', function ($q) {
     global $token;
     Resolve::json($token->logout_expired());
 });
 
-
 // REQUESTS
 
-Query::get('request','p:login user:!r pass:!r',function($q){
+Query::get('request', 'p:login user:!r pass:!r', function ($q) {
     global $user;
-    $log = $user->login(@$q["user"],@$q["pass"]);
-    Resolve::json($log !== FALSE && is_string($log) ? ["token" => $log] : ["error" => "Invalid credential"]);
+    $log = $user->login(@$q["user"], @$q["pass"]);
+    Resolve::json($log !== false && is_string($log) ? ["token" => $log] : ["error" => "Invalid credential"]);
 });
 
-Query::get('request','p:register user:!r pass:!r fname:!r mname:!r lname:!r gender:!r email:!r position level phone:!r address:!r',function($q){
+Query::get('request', 'p:register user:!r pass:!r fname:!r mname:!r lname:!r gender:!r email:!r position level phone:!r address:!r', function ($q) {
     global $user;
-    $reg = $user->register((array)$q);
-    Resolve::json($reg === TRUE ? ['status'=>true] : ['errors'=>$reg]);
+    $reg = $user->register((array) $q);
+    Resolve::json($reg === true ? ['status' => true] : ['errors' => $reg]);
 });
 
-Query::get('request',"p:account_info token:!r",function($q){
-    global $user,$token;
+Query::get('request', "p:account_info token:!r", function ($q) {
+    global $user, $token;
 
     $data = [];
 
     $log = $token->verify_token($q["token"]);
-    if($log !== FALSE) {
+    if ($log !== false) {
         $t = $q["token"];
-        $user_id = (int)$token->column('user_id',["token"=>$t]);
+        $user_id = (int) $token->column('user_id', ["token" => $t]);
         unset($res["error"]);
-        $data = $user->row(["id"=>$user_id]);
+        $data = $user->row(["id" => $user_id]);
         unset($data["pass"]);
-        $data["id"] = (int)$data["id"];
-        $data["level"] = (int)$data["level"];
-        $data["timestamp"] = (int)$data["timestamp"];
+        $data["id"] = (int) $data["id"];
+        $data["level"] = (int) $data["level"];
+        $data["timestamp"] = (int) $data["timestamp"];
         $token->update_token($t);
     }
 
-    Resolve::json($log !== FALSE ? ["data" => $data] : ["error" => "Invalid token"]);
+    Resolve::json($log !== false ? ["data" => $data] : ["error" => "Invalid token"]);
 });
 
-Query::get('request','p:logout token:!r',function($q){
+Query::get('request', 'p:logout token:!r', function ($q) {
     global $token;
-    Resolve::json(["status" => $token->verify_token($q['token']) ? $token->logout($q['token']) : FALSE]);
+    Resolve::json(["status" => $token->verify_token($q['token']) ? $token->logout($q['token']) : false]);
 });
 
-Query::get('request','p:verify_token token:!r',function($q){
+Query::get('request', 'p:verify_token token:!r', function ($q) {
     global $token;
     Resolve::json(["status" => $token->verify_token($q['token'])]);
 });
 
-Query::get('request','p:user id:!r',function($q){
+Query::get('request', 'p:user id:!r', function ($q) {
     global $user;
-    $u = $user->row(["id"=>$q["id"]]);
-    if(count($u) > 0){
-        $u["id"] = (int)$u["id"];
+    $u = $user->row(["id" => $q["id"]]);
+    if (count($u) > 0) {
+        $u["id"] = (int) $u["id"];
         unset($u["pass"]);
         unset($u["timestamp"]);
         unset($u["phone"]);
         unset($u["email"]);
         unset($u["address"]);
         unset($u["level"]);
-        Resolve::json(["data"=>$u]);
+        Resolve::json(["data" => $u]);
     }
     Resolve::json(["error" => "Invalid user id"]);
 });

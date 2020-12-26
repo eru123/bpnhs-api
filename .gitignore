@@ -1,4 +1,4 @@
-api.sublime-project
+api.sublime-*
 *.logs
 /vendor/
 composer.lock

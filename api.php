@@ -510,6 +510,30 @@ class LPDO
         }
         return $columns;
     }
+    public function tables()
+    {
+        try {
+            $tableList = array();
+            $result = $this->pdo->query("SHOW TABLES");
+            while ($row = $result->fetch(PDO::FETCH_NUM)) {
+                $tableList[] = $row[0];
+            }
+            return $tableList;
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+    public function deleteAllTables()
+    {
+        $query = "";
+        foreach ($this->tables() as $table) {
+            $query .= "DROP TABLE IF EXISTS $table;";
+        }
+        if (!empty($query)) {
+            return $this->pdo->exec($query) == 0 ? TRUE : FALSE;
+        }
+        return FALSE;
+    }
     public function setupSchema(array $schema = []): bool
     {
         // SCHEMA - { table: [column,...]}
@@ -1265,6 +1289,39 @@ class Token extends LPDOModel
         }
         return ["active" => $active, "expired" => $expired];
     }
+    public function active_users(): array
+    {
+        $active = [];
+        $tokens = $this->all();
+        foreach ($tokens as $token) {
+            if (isset($token["user_id"]) && !in_array($token["user_id"], $active)) {
+                $active[] = $token["user_id"];
+            }
+        }
+        return $active;
+    }
+    public function logout_deleted($user): array
+    { // $user - User Class
+        $active = $this->active_users();
+        $logout = 0;
+        foreach ($active as $user_id) {
+            if (count($user->rows(["id" => $user_id])) < 1) {
+                $this->delete(["user_id" => $user_id]);
+                $logout++;
+            }
+        }
+        return ["active" => count($active) - $logout, "logout" => $logout];
+    }
+    public function tokens_byUserId($id): array
+    {
+        return $this->rows(["user_id" => $id]);
+    }
+    public function tokens_byUserName($username, $userClass): array
+    {
+        $user = $userClass->row(["user" => $username]);
+        if (count($user) < 1 || !isset($user["id"])) return [];
+        return $this->rows(["user_id" => $user["id"]]);
+    }
     public function update_token(string $token): bool
     {
         $exp = time() + self::$MAX_TIME;
@@ -1555,11 +1612,20 @@ $pdo = new LPDO($config["pdo"]);
 $user = new User($pdo);
 $token = new Token($pdo);
 
+// ADMIN
+
+
+
 // CRON JOBS
 
 Query::get('request', 'p:cron r:logout_expired', function ($q) {
     global $token;
     Resolve::json($token->logout_expired());
+});
+
+Query::get('request', 'p:cron r:logout_deleted', function ($q) {
+    global $user, $token;
+    Resolve::json($token->logout_deleted($user));
 });
 
 // REQUESTS

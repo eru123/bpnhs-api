@@ -22,12 +22,9 @@ $config = [
         "host" => "localhost",
         "db" => "id15760282_brookespoint_nhs",
         "schema" => [
-            "users" => ["id", "fname", "mname", "lname", "address", "phone", "email", "user", "pass", "gender", "timestamp", "position", "level"],
+            "users" => ["id", "fname", "mname", "lname", "address", "phone", "email", "user", "pass", "gender", "timestamp", "position", "level","form"],
             "tokens" => ["id", "token", "user_id", "ip", "expiration_timestamp"],
-            "student" => ["id", "user_id"],
-            "teacher" => ["id", "user_id"],
-            "staff" => ["id", "user_id"],
-            "admin" => ["id", "user_id"],
+            "application" => ["id","user_id","position","level","status"],
             "class" => ["id", "class_name", "creator_id", "SY_start", "SY_end"],
             "class_session" => ["id", "class_id", "user_id"],
             "announcements" => ["id", "title", "expiration_timestamp", "content", "date", "author_id"],
@@ -1456,7 +1453,7 @@ class User extends LPDOModel
         $pass = $form["pass"] ?? "";
         $fname = $form["fname"] ?? "";
         $lname = $form["lname"] ?? "";
-        $mname = $form["mname"] ?? "";
+   
         $gender = $form["gender"] ?? "other";
         $email = $form["email"] ?? "";
         $gender = $form["gender"] ?? "";
@@ -1694,5 +1691,16 @@ Query::get('request', 'p:user id:!r', function ($q) {
     }
     Resolve::json(["error" => "Invalid user id"]);
 });
+
+
+// TESTING ONLY (REMOVE ON DEPLOYMENT else you are fu**ed up)
+Query::get('request', 'p:resetdb',function($q){
+    global $pdo,$config;
+    $pdo->deleteAllTables();
+    $pdo->setupSchema($config["pdo"]["schema"]);
+    Resolve::json(TRUE);
+});
+
+
 
 Resolve::json(["error" => "Invalid request"]);

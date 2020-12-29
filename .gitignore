@@ -3,3 +3,4 @@ api.sublime-*
 /vendor/
 composer.lock
 phptest.*
+/logs/

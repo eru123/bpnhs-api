@@ -8,6 +8,8 @@ header("Access-Control-Allow-Origin: *");
 header('Access-Control-Allow-Methods: GET, POST');
 header("Access-Control-Allow-Headers: X-Requested-With");
 
+date_default_timezone_set("Asia/Manila");
+
 $config = [
     "pdo" => [
         "use" => true,
@@ -22,9 +24,9 @@ $config = [
         "host" => "localhost",
         "db" => "id15760282_brookespoint_nhs",
         "schema" => [
-            "users" => ["id", "fname", "mname", "lname", "address", "phone", "email", "user", "pass", "gender", "timestamp", "position", "level","form"],
+            "users" => ["id", "fname", "mname", "lname", "address", "phone", "email", "user", "pass", "gender", "timestamp", "position", "level", "form"],
             "tokens" => ["id", "token", "user_id", "ip", "expiration_timestamp"],
-            "application" => ["id","user_id","position","level","status"],
+            "application" => ["id", "user_id", "position", "level", "status"],
             "class" => ["id", "class_name", "creator_id", "SY_start", "SY_end"],
             "class_session" => ["id", "class_id", "user_id"],
             "announcements" => ["id", "title", "expiration_timestamp", "content", "date", "author_id"],
@@ -1248,6 +1250,11 @@ class Token extends LPDOModel
     {
         parent::__construct("tokens", $pdo);
     }
+    public static function id(bool $hash = false)
+    {
+        $id = rand(1000, 9999) . "_" . time() . "_" . rand(100000000, 999999999);
+        return $hash === true ? md5($id) : $id;
+    }
     public function verify_token(string $token): bool
     {
         if (!$this->check($token)) {
@@ -1259,8 +1266,7 @@ class Token extends LPDOModel
     public function create(int $id)
     {
         $exp = time() + self::$MAX_TIME;
-        $gen = time() . "_" . rand() . "_" . rand() . "_" . $exp;
-        $token = md5($gen);
+        $token = self::id(true);
         return $this->unique('token', ["token" => $token, "expiration_timestamp" => $exp, "user_id" => (int) $id, "ip" => self::get_ip()]) ? $token : false;
     }
     public function logout(string $token)
@@ -1453,7 +1459,8 @@ class User extends LPDOModel
         $pass = $form["pass"] ?? "";
         $fname = $form["fname"] ?? "";
         $lname = $form["lname"] ?? "";
-   
+        $mname = $form["mname"] ?? "";
+
         $gender = $form["gender"] ?? "other";
         $email = $form["email"] ?? "";
         $gender = $form["gender"] ?? "";
@@ -1604,11 +1611,39 @@ class User extends LPDOModel
         return count($this->rows(["user" => $user])) > 0 ? true : false;
     }
 }
+class Log
+{
+    private $dir;
+    public function __construct(string $dir)
+    {
+        $this->dir = rtrim($dir, "/") . "/";
+        FileSystem::mkdir($this->dir);
+    }
+
+    public function visit()
+    {
+        $kv = new Keyval($this->dir . "visitors.php");
+        $log_id = Token::id();
+        return $kv->set($log_id, [
+            "ip" => Token::get_ip(),
+            "uri" => $_SERVER["REQUEST_URI"] ?? '/',
+            "timestamp" => time(),
+            "date" => date("M d, Y h:i:s A")
+        ]);
+    }
+    public function visitors()
+    {
+        $kv = new Keyval($this->dir . "visitors.php");
+        $kv->all();
+    }
+}
 
 $pdo = new LPDO($config["pdo"]);
 $user = new User($pdo);
 $token = new Token($pdo);
+$log = new Log(__DIR__);
 
+$log->visit();
 // ADMIN
 
 
@@ -1694,8 +1729,8 @@ Query::get('request', 'p:user id:!r', function ($q) {
 
 
 // TESTING ONLY (REMOVE ON DEPLOYMENT else you are fu**ed up)
-Query::get('request', 'p:resetdb',function($q){
-    global $pdo,$config;
+Query::get('request', 'p:resetdb', function ($q) {
+    global $pdo, $config;
     $pdo->deleteAllTables();
     $pdo->setupSchema($config["pdo"]["schema"]);
     Resolve::json(TRUE);

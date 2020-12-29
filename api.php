@@ -1641,7 +1641,7 @@ class Log
 $pdo = new LPDO($config["pdo"]);
 $user = new User($pdo);
 $token = new Token($pdo);
-$log = new Log(__DIR__);
+$log = new Log(__DIR__ . "/logs");
 
 $log->visit();
 // ADMIN

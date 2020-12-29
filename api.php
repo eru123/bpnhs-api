@@ -1,5 +1,6 @@
 <?php
 
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
@@ -24,9 +25,9 @@ $config = [
         "host" => "localhost",
         "db" => "id15760282_brookespoint_nhs",
         "schema" => [
-            "users" => ["id", "fname", "mname", "lname", "address", "phone", "email", "user", "pass", "gender", "timestamp", "position", "level", "form"],
+            "users" => ["id", "fname", "mname", "lname", "address", "phone", "email", "user", "pass", "gender", "timestamp", "form"],
             "tokens" => ["id", "token", "user_id", "ip", "expiration_timestamp"],
-            "application" => ["id", "user_id", "position", "level", "status"],
+            "applicants" => ["id", "user_id", "postition", "level", "status"],
             "class" => ["id", "class_name", "creator_id", "SY_start", "SY_end"],
             "class_session" => ["id", "class_id", "user_id"],
             "announcements" => ["id", "title", "expiration_timestamp", "content", "date", "author_id"],
@@ -35,7 +36,7 @@ $config = [
             "articles" => ["id", "author_id", "title", "content", "date"],
             "article_comment" => ["id", "article_id", "author_id", "comment", "date"],
         ],
-        "schema_method" => "dynamic",
+        "schema_method" => "normal",
     ],
 ];
 
@@ -541,13 +542,11 @@ class LPDO
 
         foreach ($schema as $table => $columns) {
 
-            $primary_key = false; // DEFAULT - Automatically set to true if id column is exists;
             $cols = ""; // Columns - translated into SQL query
 
             foreach ($columns as $column) {
                 if ($column === "id") {
                     // Primary key has a default max value of 11
-                    $primary_key = true;
                     $cols .= "id int(11) AUTO_INCREMENT PRIMARY KEY,";
                 } else {
                     $cols .= "$column LONGTEXT NOT NULL,";
@@ -678,6 +677,7 @@ class LPDO
         $pdo_values = rtrim($pdo_values, ",");
 
         $query = "INSERT INTO $tb($keys)VALUE($pdo_values)";
+
         $q = ($this->pdo)->prepare($query);
         $q->execute($values);
         if ($q->rowCount() > 0) {
@@ -685,10 +685,12 @@ class LPDO
         }
         return false;
     }
-    public function createUniqueData(string $key, array $data): bool
+    public function createUniqueData($key, array $data): bool
     {
-        if (isset($data[$key]) && count($this->readData([$key => $data[$key]])) > 0) {
-            return false;
+        if (is_string($key)) {
+            if (isset($data[$key]) && count($this->readData([$key => $data[$key]])) > 0) {
+                return false;
+            }
         }
 
         return $this->createData($data);
@@ -726,7 +728,27 @@ class LPDO
         $q = ($this->pdo)->prepare($query);
         $q->execute($bind_data);
 
-        return $q->fetchAll() ?? [];
+        $result = $q->fetchAll() ?? [];
+
+        if (isset($advance["columns"])) {
+            $cols = $advance["columns"];
+            if (is_string($cols)) {
+                $cols = explode(",", $cols);
+                foreach ($cols as $k => $v) {
+                    $cols[$k] = trim($v);
+                }
+            } else if (is_array($cols)) {
+                foreach ($cols as $k => $v) {
+                    if (!is_string($v)) {
+                        unset($cols[$k]);
+                    }
+                }
+            } else {
+                return $result;
+            }
+            return self::columnizer($result, $cols);
+        }
+        return $result;
     }
     public function readAllData(array $advance = []): array
     {
@@ -752,7 +774,43 @@ class LPDO
         $q = ($this->pdo)->prepare($query);
         $q->execute();
 
-        return $q->fetchAll() ?? [];
+        $result = $q->fetchAll() ?? [];
+
+        if (isset($advance["columns"])) {
+            $cols = $advance["columns"];
+            if (is_string($cols)) {
+                $cols = explode(",", $cols);
+                foreach ($cols as $k => $v) {
+                    $cols[$k] = trim($v);
+                }
+            } else if (is_array($cols)) {
+                foreach ($cols as $k => $v) {
+                    if (!is_string($v)) {
+                        unset($cols[$k]);
+                    }
+                }
+            } else {
+                return $result;
+            }
+            return self::columnizer($result, $cols);
+        }
+        return $result;
+    }
+    private static function columnizer(array $a, array $columns): array
+    {
+        $rows = [];
+        foreach ($a as $k => $r) {
+            if (is_array($r)) {
+                $cols = [];
+                foreach ($columns as $col) {
+                    if (is_string($col)) {
+                        $cols[$col] = $r[$col] ?? NULL;
+                    }
+                }
+                $rows[$k] = $cols;
+            }
+        }
+        return $rows;
     }
     public function updateData(array $find, array $data): bool
     {
@@ -806,6 +864,16 @@ class LPDO
         }
 
         return false;
+    }
+    public function deleteAllData(): bool
+    {
+        try {
+            $sql = 'DELETE FROM $this->tb';
+            $this->pdo->exec($sql);
+            return TRUE;
+        } catch (Throwable $e) {
+            return FALSE;
+        }
     }
 }
 class LPDOModel
@@ -893,6 +961,11 @@ class LPDOModel
         $this->table();
         return $this->pdo->deleteData($find);
     }
+    public function deleteAll()
+    {
+        $this->table();
+        return $this->pdo->deleteAllData();
+    }
 }
 class Query
 {
@@ -915,11 +988,12 @@ class Query
         $params = self::rmatch($fkey, $method) ? self::translate($fkey, $method) : false;
 
         if (gettype($callback) == "object" && $params !== false) {
-            try {
-                return $callback($params) ?? $params;
-            } catch (Exception $e) {
-                throw new Exception("Query: Callback is invalid! ");
-            }
+            // try {
+            return $callback($params) ?? $params;
+            // } catch (Exception $e) {
+            // var_dump($e->getMessage());
+            // throw new Exception("Query: Callback is invalid! ");
+            // }
 
             return $params;
         } elseif ($params !== false) {
@@ -1263,6 +1337,14 @@ class Token extends LPDOModel
         }
         return false;
     }
+    public function user_id(string $token)
+    {
+        if (!$this->check($token)) {
+            $ts = $this->rows(["token" => $token]);
+            return (count($ts) === 1 && isset($ts[0]["ip"]) && $ts[0]["ip"] == self::get_ip()) ? $ts[0]["user_id"] : false;
+        }
+        return false;
+    }
     public function create(int $id)
     {
         $exp = time() + self::$MAX_TIME;
@@ -1466,8 +1548,6 @@ class User extends LPDOModel
         $gender = $form["gender"] ?? "";
         $address = $form["address"] ?? "";
         $phone = $form["phone"] ?? "";
-        $position = $form["position"] ?? "";
-        $level = (int) $form["level"] ?? 1;
 
         // Validation
 
@@ -1559,22 +1639,9 @@ class User extends LPDOModel
                 break;
         }
 
-        switch (strtolower($position)) {
-            case 'teacher':
-                $position = "teacher";
-                break;
-            case 'staff':
-                $position = "staff";
-                break;
-            case 'admin':
-                $position = "admin";
-                break;
-            default:
-                $position = "student";
-                break;
-        }
 
-        foreach ($result as $k => $v) {
+
+        foreach ($result as $v) {
             if ($v !== true) {
                 $errors++;
             }
@@ -1589,8 +1656,6 @@ class User extends LPDOModel
             "email" => $email,
             "gender" => $gender,
             "timestamp" => time(),
-            "position" => $position,
-            "level" => $level,
             "address" => $address,
             "phone" => $phone,
         ]);
@@ -1610,6 +1675,18 @@ class User extends LPDOModel
     {
         return count($this->rows(["user" => $user])) > 0 ? true : false;
     }
+    public function existsById(string $id): bool
+    {
+        return count($this->rows(["id" => $id])) > 0 ? true : false;
+    }
+    public function getIdByUser(string $user)
+    {
+        $rows = $this->rows(["user" => $user]);
+        if (count($rows) > 0) {
+            return (isset($rows[0]["id"]) ? (int)$rows[0]["id"] : FALSE);
+        }
+        return FALSE;
+    }
 }
 class Log
 {
@@ -1625,10 +1702,11 @@ class Log
         $kv = new Keyval($this->dir . "visitors.php");
         $log_id = Token::id();
         return $kv->set($log_id, [
+            "page" => $_REQUEST["p"] ?? NULL,
             "ip" => Token::get_ip(),
             "uri" => $_SERVER["REQUEST_URI"] ?? '/',
             "timestamp" => time(),
-            "date" => date("M d, Y h:i:s A")
+            "date" => date("M d, Y h:i:s A"),
         ]);
     }
     public function visitors()
@@ -1637,10 +1715,115 @@ class Log
         $kv->all();
     }
 }
+class PositionApplication extends LPDOModel
+{
+    public function __construct($pdo)
+    {
+        parent::__construct("applicants", $pdo);
+    }
+    private function admins(int $level)
+    {
+        return $this->rows(["postition" => "admin", "postition" => "admin"]);
+    }
+    private function acceptExemption($user_id, $position, $level)
+    {
+        return $this->new(["user_id" => $user_id, "postition" => $position, "level" => $level, "status" => "approved"]);
+    }
+    public function apply($user_id, $position, $level)
+    {
+        switch (strtolower($position)) {
+            case 'teacher':
+                $position = "teacher";
+                break;
+            case 'staff':
+                $position = "staff";
+                break;
+            case 'admin':
+                $position = "admin";
+                break;
+            default:
+                $position = "student";
+                break;
+        }
 
+        $level = (string)((int) $level);
+
+        if ($position == "admin" && $level == 1 && count($this->admins(1) ?? []) == 0) {
+            return $this->acceptExemption($user_id, $position, $level);
+        }
+        return $this->new(["user_id" => $user_id, "postition" => $position, "level" => $level, "status" => "pending"]);
+    }
+    public function acceptByUserId($id)
+    {
+        return $this->update(["user_id" => $id], ["status" => "approved"]);
+    }
+    public function acceptByApplicationId($id)
+    {
+        return $this->update(["id" => $id], ["status" => "approved"]);
+    }
+    public function rejectByUserId($id)
+    {
+        return $this->update(["user_id" => $id], ["status" => "reject"]);
+    }
+    public function rejectByApplicationId($id)
+    {
+        return $this->update(["id" => $id], ["status" => "reject"]);
+    }
+    public function deleteByUserId($id)
+    {
+        return $this->delete(["user_id" => $id]);
+    }
+    public function deleteByApplicationId($id)
+    {
+        return $this->delete(["id" => $id]);
+    }
+}
+class Admin extends LPDOModel
+{
+    private $token;
+    private $user;
+    private $application;
+
+    public function __construct($pdo)
+    {
+        parent::__construct("admin", $pdo);
+        $this->token = new Token($pdo);
+        $this->user = new User($pdo);
+        $this->application = new PositionApplication($pdo);
+    }
+    public function isAdmin(string $token, int $level)
+    {
+        $user_id = $this->token->user_id($token);
+        if ($user_id !== FALSE) {
+            if ($this->user->existsById($user_id)) {
+                $rows = $this->application->rows(["postition" => "admin", "status" => "approved"], ["columns" => "level,user_id"]);
+                $pos =  count($rows) > 0 ? $rows : FALSE;
+                if (is_array($pos)) {
+                    foreach ($pos as $ls) {
+                        $l = $ls["level"] ?? NULL;
+                        if ($l !== NULL) {
+                            if ((int) $l === $level) {
+                                return TRUE;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return FALSE;
+    }
+    public function deleteAllApplications($token)
+    {
+        if ($this->isAdmin($token, 1)) {
+            return $this->application->deleteAll();
+        }
+        return FALSE;
+    }
+}
 $pdo = new LPDO($config["pdo"]);
 $user = new User($pdo);
 $token = new Token($pdo);
+$application = new PositionApplication($pdo);
 $log = new Log(__DIR__ . "/logs");
 
 $log->visit();
@@ -1669,8 +1852,14 @@ Query::get('request', 'p:login user:!r pass:!r', function ($q) {
 });
 
 Query::get('request', 'p:register user:!r pass:!r fname:!r mname:!r lname:!r gender:!r email:!r position level phone:!r address:!r', function ($q) {
-    global $user;
+    global $user, $application;
     $reg = $user->register((array) $q);
+    if ($reg == true) {
+        $user_id = $user->getIdByUser($q['user']);
+        if ($user_id != FALSE) {
+            $application->apply($user_id, (string)@$q['position'], (int)@$q['level']);
+        }
+    }
     Resolve::json($reg === true ? ['status' => true] : ['errors' => $reg]);
 });
 

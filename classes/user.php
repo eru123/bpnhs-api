@@ -471,8 +471,8 @@ class Admin extends LPDOModel
     private $application;
 
     public function __construct($pdo)
-    {
-        parent::__construct("admin", $pdo);
+    {   
+        $this->pdo = $pdo;
         $this->token = new Token($pdo);
         $this->user = new User($pdo);
         $this->application = new PositionApplication($pdo);
@@ -527,5 +527,36 @@ class Admin extends LPDOModel
             return $pdo->setupSchema($config["pdo"]["schema"]);
         }
         return FALSE;
+    }
+}
+class Teacher
+{   
+    private $valid = false;
+    public function __construct($class)
+    {
+        $this->application = $class["application"];
+    }
+    public function validByToken(string $token) : bool {
+        $user_id = $this->token->user_id($token);
+        $this->valid = ($user_id === FALSE) ? FALSE : $this->validById((int) $user_id);
+        return $this->valid;
+    }
+    public function validById(int $id) : bool {
+        $this->valid = count($this->$application->rows(["user_id"=>$id,"position"=>"teacher","status"=>"approved"])) > 0 ? true : false;
+        return $this->valid;
+    }
+}
+class Staff 
+{
+    public function __construct($class)
+    {
+        
+    }
+}
+class Student
+{
+    public function __construct($class)
+    {
+        
     }
 }

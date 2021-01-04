@@ -1,0 +1,83 @@
+ [ ] Admin panel
+     [X] Is Admin
+     [X] Remove all users
+     [X] Remove all sessions/tokens
+     [X] Remove all applications
+     [X] Reset Database
+     [ ] Access Staff Panel
+     [ ] Access Teacher Panel
+     [ ] Access Student Panel
+     [ ] Approved/ReApply/Reject/Change Position Application
+         [ ] Change level
+         [ ] Change status to (pending|approved|rejected)
+         [ ] Delete Application Form (Approved deletion sent from staff|teacher|student)
+         [ ] Change position to (admin|staff|teacher|student)
+     [ ] Access to all log information
+     [ ] Manage Users
+         [ ] Update User Information
+         [ ] Update 
+         [ ] Manage 
+ [ ] Staff panel
+     [ ] Students Session Monitoring
+     [ ] Teachers Session Monitoring
+     [ ] Analytics For Teachers performace
+         [ ] Analytics for Teacher's activities (Time spent)
+         [ ] Analytics for Teacher's CRUD (Class Materials, Articles, Comments, Replies, Reacts)
+     [ ] Analytics For Students performace
+         [ ] Analytics for Teacher's activities (Time spent)
+         [ ] Analytics for Teacher's CRUD (Class Materials, Articles, Comments, Replies, Reacts)
+     [ ] Access to Teacher Materials Template
+     [ ] Verify Student Grade from the computed grade
+     [ ] Verify class subject
+     [ ] Verify class section
+     [ ] Verify Student
+     [ ] Manage Position Application
+         [ ] Change level
+         [ ] Change status to (pending|approved|rejected)
+         [ ] Submit Form Deletion Request
+         [ ] Submit Form Change Position Request to (staff|teacher|student)
+     [ ] Manage Users
+         [ ] Request to change user information
+ [ ] Teacher panel
+     [ ] Create Teacher's Materials Template
+     [ ] Create Section
+     [ ] Create Class Subject
+     [ ] Create Lesson Plan
+         [ ] Create class discussion
+         [ ] Create class forum
+         [ ] Create Class Assignment
+         [ ] Create Class Journal
+         [ ] Create class Self/Graded Quiz
+         [ ] Create Reviewer/Final Exam
+     [ ] Assess Student's Answer from created Lesson Plan 
+     [ ] Verify/Edit Student's information
+         [ ] Name
+         [ ] LRN
+         [ ] Address
+         [ ] Birthday
+         [ ] Parents/Guardians 
+     [ ] Verify student
+     [ ] Manage Position Application
+         [ ] Change level request
+         [ ] Change position request
+         [ ] Delete position request
+     [ ] Performance Analytics overview
+ [ ] Student Panel
+     [ ] Apply for class
+     [ ] Participate on class
+         [ ] Discussion
+         [ ] Forum
+         [ ] Assignment
+         [ ] Journal
+         [ ] Self/Graded Quiz
+         [ ] Reviewer/Final Exam
+     [ ] Access to Grade Overview
+     [ ] Access to online resources/library/syllabus
+     [ ] Access to students repository
+ [ ] User Panel
+     [ ] Create article
+     [ ] Comment
+     [ ] Replies  
+     [ ] Mentions
+     [ ] Up/Down Vote
+ [ ] Guest Panel

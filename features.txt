@@ -15,8 +15,17 @@
      [ ] Access to all log information
      [ ] Manage Users
          [ ] Update User Information
-         [ ] Update 
+             [ ] Update User Information
+             [ ] Update Admin Information
+             [ ] Update Staff Information
+             [ ] Update Teacher Information
+             [ ] Update Student Information
          [ ] Manage 
+             [ ] Delete User
+             [ ] Delete Admin
+             [ ] Delete Staff
+             [ ] Delete Teacher
+             [ ] Delete Student
  [ ] Staff panel
      [ ] Students Session Monitoring
      [ ] Teachers Session Monitoring

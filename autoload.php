@@ -51,7 +51,13 @@ $admin = new Admin($pdo);
 $log = new Log(__DIR__ . "/logs");
 $log->visit();
 
-
+$teacher = new Teacher([
+    "application" => $application,
+    "user" => $user,
+    "pdo" => $pdo,
+    "token" => $token,
+    "log" => $log
+]);
 function getPositions($q){
     global $token, $user,$application;
     $res = $token->verify_token($q['token']);

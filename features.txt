@@ -36,6 +36,10 @@
          [ ] Analytics for Teacher's activities (Time spent)
          [ ] Analytics for Teacher's CRUD (Class Materials, Articles, Comments, Replies, Reacts)
      [ ] Access to Teacher Materials Template
+         [ ] Create templates
+         [ ] Add teacher template to default templates
+         [ ] Delete Templates
+         [ ] Modify Templates
      [ ] Verify Student Grade from the computed grade
      [ ] Verify class subject
      [ ] Verify class section
@@ -66,6 +70,8 @@
          [ ] Birthday
          [ ] Parents/Guardians 
      [ ] Verify student
+         [ ] Report suspicious student
+         [ ] Access students credentials (limited to students in created class only)
      [ ] Manage Position Application
          [ ] Change level request
          [ ] Change position request

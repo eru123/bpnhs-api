@@ -374,33 +374,6 @@ class User extends LPDOModel
         return FALSE;
     }
 }
-class Log
-{
-    private $dir;
-    public function __construct(string $dir)
-    {
-        $this->dir = rtrim($dir, "/") . "/";
-        FileSystem::mkdir($this->dir);
-    }
-
-    public function visit()
-    {
-        $kv = new Keyval($this->dir . "visitors.php");
-        $log_id = Token::id();
-        return $kv->set($log_id, [
-            "page" => $_REQUEST["p"] ?? NULL,
-            "ip" => Token::get_ip(),
-            "uri" => $_SERVER["REQUEST_URI"] ?? '/',
-            "timestamp" => time(),
-            "date" => date("M d, Y h:i:s A"),
-        ]);
-    }
-    public function visitors()
-    {
-        $kv = new Keyval($this->dir . "visitors.php");
-        $kv->all();
-    }
-}
 class PositionApplication extends LPDOModel
 {
     public function __construct($pdo)
@@ -464,7 +437,112 @@ class PositionApplication extends LPDOModel
         return $this->delete(["id" => $id]);
     }
 }
-class Admin extends LPDOModel
+class Section extends LPDOModel {
+    public function __construct($pdo)
+    {
+        parent::__construct("section", $pdo);
+    }
+    public function validateCreateSectionQuery(array $a) : array {
+        $result = [];
+        $result["name"] = isset($a["name"]) && strlen($a["name"]) >= 2 && strlen($a["name"]) <= 128 ? TRUE : FALSE;
+        $result["level"] = isset($a["level"]);
+        $result["adviser_id"] = isset($a["adviser_id"]);
+        return $result;
+    }
+    public function validateUpdateSectionQuery(array $a) : bool {
+        if(isset($a["name"])){
+            if(strlen($a["name"]) < 2 && strlen($a["name"]) > 128) {
+                return FALSE;
+            }
+        }
+        return TRUE;
+    }
+    public function filterCreateSectionQuery(array $a,string $dateFormat = "m d, Y") : array {
+        $timestamp = time();
+        $year = 31622400; // seconds
+        $result = [];
+        $result["status"] = "pending";
+        $result["name"] = $a["name"] ?? "";
+        $result["description"] = $a["description"] ?? "";
+        $result["level"] = (int) $a["level"] ?? 0;
+        $result["adviser_id"] = (int) $a["adviser_id"] ?? 0;
+        $result["timestamp"] = $timestamp;
+        $result["expiration_timestamp"] = $timestamp + $year;
+        $result["date"] = date($dateFormat,$result["timestamp"]);
+        $result["expiration_date"] = date($dateFormat,$result["expiration_timestamp"]);
+        return $result;
+    }
+    public function filterUpdateSectionQuery(array $a) : array {
+        $result = [];
+        $valid = ["status","name","description","level","adviser_id","timestamp","expiration_timestamp","date","expiration_date"];
+        foreach ($valid as $key) {
+            if(isset($a[$key])) {
+                $result[$key] = $a[$key] ?? "";
+            }
+        }
+        return $result;
+    }
+    public function createSection(array $a) : bool {
+        $validate = $this->validateCreateSectionQuery($a);
+        if($validate["name"] === TRUE && $validate["level"] === TRUE && $validate["adviser_id"] === TRUE) {
+            $filtered = $this->filterCreateSectionQuery($a);
+            return $this->new($filtered) ? TRUE : FALSE;
+        }
+        return FALSE;
+    }
+    public function updateSection(int $section_id, array $data) : bool {
+        $validate = $this->validateUpdateSectionQuery($a);
+        if($validate === TRUE) {
+            $filtered = $this->filterUpdateSectionQuery($a);
+            return $this->update(["id"=>$section_id],$filtered) ? TRUE : FALSE;
+        }
+        return FALSE;
+    }
+    public function updateSectionStatus(int $id,string $status) : bool {
+        return $this->updateSection($id,["status"=>$status]);
+    }
+    public function deleteSection(int $id) : bool {
+        return $this->delete(["id"=>$id]);
+    }
+    public function verifyAdviser(int $section_id,int $adviser_id) : bool {
+        return count($this->rows(["id"=>$section_id,"adviser_id"=>$adviser_id])) == 1;
+    }
+}
+class Course extends LPDOModel {
+    public function __construct($pdo)
+    {
+        parent::__construct("course", $pdo);
+    }
+}
+class Log
+{
+    private $dir;
+    public function __construct(string $dir)
+    {
+        $this->dir = rtrim($dir, "/") . "/";
+        FileSystem::mkdir($this->dir);
+    }
+
+    public function visit()
+    {
+        $kv = new Keyval($this->dir . "visitors.php");
+        $log_id = Token::id();
+        return $kv->set($log_id, [
+            "page" => $_REQUEST["p"] ?? NULL,
+            "ip" => Token::get_ip(),
+            "uri" => $_SERVER["REQUEST_URI"] ?? '/',
+            "timestamp" => time(),
+            "date" => date("M d, Y h:i:s A"),
+        ]);
+    }
+    public function visitors()
+    {
+        $kv = new Keyval($this->dir . "visitors.php");
+        $kv->all();
+    }
+}
+
+class Admin
 {
     private $token;
     private $user;
@@ -499,6 +577,10 @@ class Admin extends LPDOModel
         }
         return FALSE;
     }
+    public function isAdminById(int $id,int $level = 1)
+    {
+        return count($this->application->rows(["postition" => "admin", "status" => "approved","user_id" => $id,"level" => $level])) > 0 ? TRUE : FALSE;
+    }
     public function deleteAllApplications($token)
     {
         if ($this->isAdmin($token, 1)) {
@@ -529,12 +611,22 @@ class Admin extends LPDOModel
         return FALSE;
     }
 }
+
 class Teacher
 {   
     private $valid = false;
-    public function __construct($class)
+    private $application;
+    private $token;
+    private $admin;
+    private $section;
+    private $course;
+    public function __construct($pdo)
     {
-        $this->application = $class["application"];
+        $this->application = new PositionApplication($pdo);
+        $this->token = new Token($pdo);
+        $this->admin = new Admin($pdo);
+        $this->section = new Section($pdo);
+        $this->course = new Course($pdo);
     }
     public function validByToken(string $token) : bool {
         $user_id = $this->token->user_id($token);
@@ -543,6 +635,14 @@ class Teacher
     }
     public function validById(int $id) : bool {
         $this->valid = count($this->$application->rows(["user_id"=>$id,"position"=>"teacher","status"=>"approved"])) > 0 ? true : false;
+        return $this->valid;
+    }
+    public function validByAdminToken(string $token) : bool {
+        $this->valid = $this->admin->isAdmin($token,1);
+        return $this->valid;
+    }
+    public function validByAdminId(int $id) : bool {
+        $this->valid = $this->admin->isAdminById($id,1);
         return $this->valid;
     }
 }

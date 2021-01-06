@@ -14,11 +14,6 @@ $config = [
     "pdo" => [
         "use" => true,
         "model" => true,
-        "models" => [
-            "users",
-            "class",
-            "staff",
-        ],
         "user" => "id15760282_bpnhs",
         "pass" => "liSKrf!rNtlPx]F4",
         "host" => "localhost",
@@ -27,13 +22,12 @@ $config = [
             "users" => ["id", "fname", "mname", "lname", "address", "phone", "email", "user", "pass", "gender", "timestamp", "form"],
             "tokens" => ["id", "token", "user_id", "ip", "expiration_timestamp"],
             "applicants" => ["id", "user_id", "position", "level", "status"],
-            "class" => ["id", "class_name", "creator_id", "SY_start", "SY_end"],
-            "class_session" => ["id", "class_id", "user_id"],
             "announcements" => ["id", "title", "expiration_timestamp", "content", "date", "author_id"],
-            "class_forum_posts" => ["id", "title", "content", "date", "class_id", "user_id"],
-            "class_forum_comments" => ["id", "comment", "date", "forum_post_id", "user_id"],
             "articles" => ["id", "author_id", "title", "content", "date"],
             "article_comment" => ["id", "article_id", "author_id", "comment", "date"],
+            "section" => ["id","name","level","adviser_id","date","expiration_timestamp","timestamp","expiration_date","date","description","status"],
+            "course" => ["id","name","section_id","teacher_id","expiration_timestamp","date","timestamp","description","status"],
+            "lesson_plan" => ["id","name","teacher_id"]
         ],
         "schema_method" => "normal",
     ],
@@ -43,21 +37,15 @@ $config = [
 require_once __DIR__."/classes/core.php";
 require_once __DIR__."/classes/user.php";
 
-$pdo = new LPDO($config["pdo"]);
-$user = new User($pdo);
-$token = new Token($pdo);
-$application = new PositionApplication($pdo);
-$admin = new Admin($pdo);
-$log = new Log(__DIR__ . "/logs");
+$pdo            = new LPDO($config["pdo"]);
+$user           = new User($pdo);
+$token          = new Token($pdo);
+$application    = new PositionApplication($pdo);
+$admin          = new Admin($pdo);
+$teacher        = new Teacher($pdo);
+$log            = new Log(__DIR__ . "/logs");
 $log->visit();
 
-$teacher = new Teacher([
-    "application" => $application,
-    "user" => $user,
-    "pdo" => $pdo,
-    "token" => $token,
-    "log" => $log
-]);
 function getPositions($q){
     global $token, $user,$application;
     $res = $token->verify_token($q['token']);

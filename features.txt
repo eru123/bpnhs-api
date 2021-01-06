@@ -7,6 +7,9 @@
      [ ] Access Staff Panel
      [ ] Access Teacher Panel
      [ ] Access Student Panel
+     [ ] Manage Classes
+         [ ] Approved or Reject Class creation request
+         [ ] Approved or Reject course/subject creation request
      [ ] Approved/ReApply/Reject/Change Position Application
          [ ] Change level
          [ ] Change status to (pending|approved|rejected)
@@ -51,6 +54,9 @@
          [ ] Submit Form Change Position Request to (staff|teacher|student)
      [ ] Manage Users
          [ ] Request to change user information
+     [ ] Manage Classes
+         [ ] Approved or Reject Class creation request
+         [ ] Approved or Reject course/subject creation request
  [ ] Teacher panel
      [ ] Create Teacher's Materials Template
      [ ] Create Section

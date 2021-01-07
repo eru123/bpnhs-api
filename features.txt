@@ -59,8 +59,8 @@
          [ ] Approved or Reject course/subject creation request
  [ ] Teacher panel
      [ ] Create Teacher's Materials Template
-     [ ] Create Section
-     [ ] Create Class Subject
+     [X] Create Section
+     [X] Create Class Subject
      [ ] Create Lesson Plan
          [ ] Create class discussion
          [ ] Create class forum

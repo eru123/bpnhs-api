@@ -444,14 +444,14 @@ class Section extends LPDOModel {
     }
     public function validateCreateSectionQuery(array $a) : array {
         $result = [];
-        $result["name"] = isset($a["name"]) && strlen($a["name"]) >= 2 && strlen($a["name"]) <= 128 ? TRUE : FALSE;
+        $result["name"] = isset($a["name"]) && strlen($a["name"]) >= 2 || strlen($a["name"]) <= 128 ? TRUE : FALSE;
         $result["level"] = isset($a["level"]);
         $result["adviser_id"] = isset($a["adviser_id"]);
         return $result;
     }
     public function validateUpdateSectionQuery(array $a) : bool {
         if(isset($a["name"])){
-            if(strlen($a["name"]) < 2 && strlen($a["name"]) > 128) {
+            if(strlen($a["name"]) < 2 || strlen($a["name"]) > 128) {
                 return FALSE;
             }
         }
@@ -491,27 +491,105 @@ class Section extends LPDOModel {
         return FALSE;
     }
     public function updateSection(int $section_id, array $data) : bool {
-        $validate = $this->validateUpdateSectionQuery($a);
+        $validate = $this->validateUpdateSectionQuery($data);
         if($validate === TRUE) {
-            $filtered = $this->filterUpdateSectionQuery($a);
+            $filtered = $this->filterUpdateSectionQuery($data);
             return $this->update(["id"=>$section_id],$filtered) ? TRUE : FALSE;
         }
         return FALSE;
     }
     public function updateSectionStatus(int $id,string $status) : bool {
+
         return $this->updateSection($id,["status"=>$status]);
     }
     public function deleteSection(int $id) : bool {
+
         return $this->delete(["id"=>$id]);
     }
-    public function verifyAdviser(int $section_id,int $adviser_id) : bool {
+    public function verifySectionAdviser(int $section_id,int $adviser_id) : bool {
+
         return count($this->rows(["id"=>$section_id,"adviser_id"=>$adviser_id])) == 1;
     }
 }
 class Course extends LPDOModel {
     public function __construct($pdo)
     {
+
         parent::__construct("course", $pdo);
+    }
+    public function validateCreateCourseQuery(array $a) : array {
+        $params = [
+            "teacher_id",
+            "section_id",
+            "name"
+        ];
+        $result = [];
+        foreach ($params as $v) {
+            $result[$v] = isset($a[$v]);
+        }
+        if(strlen($a["name"]) < 2 || strlen($a["name"]) > 128) $result["name"] = FALSE;
+        return $result;
+    }
+    public function validateUpdateCourseQuery(array $a) : bool {
+        if(isset($a["name"])){
+            if(strlen($a["name"]) < 2 || strlen($a["name"]) > 128) {
+                return FALSE;
+            }
+        }
+        return TRUE;
+    }
+    public function filterCreateCourseQuery(array $a) : array {
+        $timestamp = time();
+        $year = 31622400; // seconds
+        $result = [];
+        $result["name"] = $a["name"] ?? "";
+        $result["description"] = $a["description"] ?? "";
+        $result["status"] = "pending";
+        $result["section_id"] = (int) $a["section_id"] ?? 0;
+        $result["teacher_id"] = (int) $a["teacher_id"] ?? 0;
+        $result["timestamp"] = $timestamp;
+        $result["expiration_timestamp"] = $timestamp + $year;
+        $result["date"] = date($dateFormat,$result["timestamp"]);
+        $result["expiration_date"] = date($dateFormat,$result["expiration_timestamp"]);
+        return $result;
+    }
+    public function filterUpdateCourseQuery(array $a) : array {
+        $result = [];
+        $valid =  ["name","section_id","teacher_id","expiration_timestamp","date","timestamp","description","status"];
+        foreach ($valid as $key) {
+            if(isset($a[$key])) {
+                $result[$key] = $a[$key] ?? "";
+            }
+        }
+        return $result;
+    }
+    public function createCourse(array $a) : bool {
+        $validate = $this->filterCreateCourseQuery($a);
+        if($validate["name"] === TRUE && $validate["teacher_id"] === TRUE && $validate["section_id"] === TRUE) {
+            $filtered = $this->filterCreateSectionQuery($a);
+            return $this->new($filtered) ? TRUE : FALSE;
+        }
+        return FALSE;
+    }
+    public function updateCourse(int $course_id, array $data) : bool {
+        $validate = $this->validateUpdateCourseQuery($data);
+        if($validate === TRUE) {
+            $filtered = $this->filterUpdateCourseQuery($data);
+            return $this->update(["id"=>$course_id],$filtered) ? TRUE : FALSE;
+        }
+        return FALSE;
+    }
+    public function updateCourseStatus(int $id,string $status) : bool {
+
+        return $this->updateSection($id,["status"=>$status]);
+    }
+    public function deleteCourse(int $id) : bool {
+
+        return $this->delete(["id"=>$id]);
+    }
+    public function verifyCourseTeacher(int $course_id,int $teacher_id) : bool {
+
+        return count($this->rows(["id"=>$course_id,"teacher_id"=>$teacher_id])) == 1;
     }
 }
 class Log
@@ -541,7 +619,6 @@ class Log
         $kv->all();
     }
 }
-
 class Admin
 {
     private $token;
@@ -611,10 +688,10 @@ class Admin
         return FALSE;
     }
 }
-
 class Teacher
 {   
     private $valid = false;
+    private $teacher_id = 0;
     private $application;
     private $token;
     private $admin;
@@ -644,6 +721,12 @@ class Teacher
     public function validByAdminId(int $id) : bool {
         $this->valid = $this->admin->isAdminById($id,1);
         return $this->valid;
+    }
+    public function createSection(array $a) : array {
+        return $this->valid === TRUE ? $this->section->createSection($a) : FALSE;
+    }
+    public function createCourse(array $a) : array {
+        return $this->valid === TRUE ? $this->course->createCourse($a) : FALSE;
     }
 }
 class Staff 
